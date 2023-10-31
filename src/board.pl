@@ -82,7 +82,6 @@ create_board(N, Board) :-
     ),
     create_board(N, Symbols, Board).
 
-
 create_board(_, [], []).
 create_board(N, [RowSymbols | Rest], [Row | NewBoard]) :-
     create_line(N, RowSymbols, Row),

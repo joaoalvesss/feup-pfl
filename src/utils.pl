@@ -63,26 +63,30 @@ get_int(Current, Result):-
     get_code(Input),
     between(48, 57, Input),
     New is Current * 10 + (Input - 48),
-    get_int(New, Result)
-    write(Result).
+    get_int(New, Result).
 
 
 % ------------------------------------------------------ READ INPUT
 
 read_column(Size, Column) :-
-    write('> Column:'),
+    write(' > Column: '),
     get_int(Input),
     (Input > 0, Input =< Size -> Column = Input; read_column(Size, Column)).
 
 read_row(Size, Row) :-
-    write('> Row: '),
+    write(' > Row: '),
     get_int(Input),
     (Input > 0, Input =< Size -> Row = Input; read_row(Size, Row)).
 
 read_move(Size, Move) :-
-    read_row(Size, Row),
     read_column(Size, Column),
+    read_row(Size, Row),
     Move = (Row-Column).
+
+read_piece(Size, Piece) :-
+     read_column(Size, Column),
+     read_row(Size, Row),
+     Piece = (Row-Column).    
 
 
 clear_console:- 
