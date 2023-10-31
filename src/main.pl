@@ -4,7 +4,7 @@
 % ---------- INITIAL STATE ----------
 initial(Size, InitialState):-
     create_board(Size, Board),
-    game_state_pack(InitialState, Board, 'Red', 'Blue').
+    game_state_pack(InitialState, Board, 'R', 'B').
 
 % ---------- FINAL STATE ----------
 final(State):- 
@@ -26,6 +26,7 @@ play:-
 
 play(Curr, Path, Path):- 
     final(Curr), !.
+
 
 play(Curr, Path, States):- 
     game_state_pack(Curr, Board, Player1, Player2),

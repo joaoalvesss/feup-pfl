@@ -1,17 +1,26 @@
 :- use_module(library(between)).
 % Include utility predicates and helper functions here
 
-/*
-add_list(List, Table, NewList):-
-    append(Table, [List], NewList).
+
+
+add_list(List, Table, NewTable):-
+    append( Table, [List], NewTable).
+
+
 
 copy_tail([], TableBuild, TableBuild).
 copy_tail([Head|Tail], TableBuild, NewTable):-
-    add_list([Head], TableBuild, NTableBuild),
+    add_list(Head, TableBuild, NTableBuild),
     copy_tail(Tail, NTableBuild, NewTable).
+
+
+
+
 
 replace(Table, Row, Col, Symbol, NewTable):-
     replace(Table, Row - 1, Col - 1, 0, 0, Symbol, [], NewTable).
+
+
 
 %Go to the correct row
 replace([Head|Tail], Row, Col, Acc_row, Acc_col, Symbol, TableBuild, NewTable):-
@@ -26,8 +35,33 @@ replace([Head|Tail], _, Col, _, Acc_col, Symbol, TableBuild, NewTable):-
     add_list(NewList, TableBuild, NTableBuild),
     copy_tail(Tail, NTableBuild, NewTable).
 
+
 replace_list_el( List, Index, Symbol, NewList):-
     replace_list_el( List, Index, 0, Symbol, [], NewList).
+
+
+
+replace_list_el( [Head|Tail], Index, Acc, Symbol, [], NewList):-
+    Acc < Index,
+    replace_list_el(Tail, Index, Acc + 1, Symbol, [Head], NewList),
+    !.
+
+
+
+replace_list_el( [Head|Tail], Index, Acc, Symbol, ListBuild, NewList):-
+    Acc < Index,
+    append(ListBuild, [Head], TMP),
+    replace_list_el(Tail, Index, Acc + 1, Symbol, TMP, NewList),
+    !.
+
+replace_list_el( [Head|Tail], _, _, Symbol, ListBuild, NewList):-
+    append(ListBuild, [Symbol], TMP),
+    append(TMP, Tail, NewList).
+
+
+
+
+
 
 get_option(Min,Max,Context,Value):-
     format('~a between ~d and ~d: ', [Context, Min, Max]),
@@ -44,7 +78,7 @@ read_number_aux(X,Acc):-
     read_number_aux(X,Acc1).
 read_number_aux(X,X).    
 
-*/
+
 % ------------------------------------------------------ GET INT
 
 get_int(N):- 

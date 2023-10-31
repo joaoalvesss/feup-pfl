@@ -28,30 +28,28 @@ valid_move(State, NewState):-
           read_piece(Size, Piece), nl, 
           write(' > Where to move the piece? \n'),
           read_move(Size, Move), nl,
-          (check_valid_move(State, Piece, Move) ->
-               update_board(State, Move, NewState)
-          ;
-          write(' > Invalid move!\n'), nl,
-          valid_move(State, NewState)
-          ).
+          update_board(State, Move, Piece, NewState)   
+          .
 
 
 check_valid_move(State, Piece, Move):-
           game_state_pack(State, Board, Player, Opponent),
-          Move = (Row-Column),
+          Move = (Row-Column),  
           nth0(Row, Board, BoardRow),
           nth0(BoardColumn, BoardRow, Element),
           %write('Element: \''), %write(Element), %write('\''), nl,
           Element == ' '.
 
-update_board(State, Move, NewState):- 
-          Move = (Row-Column),
+update_board(State, Move, Piece, NewState):- 
+          Move = (Row-Column), 
+          Piece = (OldRow-OldCol),
           game_state_pack(State, Board, CurrentPlayer, Opponent),
-          place_piece(Row, Column, CurrentPlayer, Board, NewBoard), % usar o replace
+          place_piece(Row, Column, OldRow, OldCol, CurrentPlayer, Board, NewBoard),
           game_state_pack(NewState, NewBoard, Opponent, CurrentPlayer).
 
-place_piece(Row, Column, CurrentPlayer, Board, NewBoard):-
-          fail. % Por implementar
+place_piece(Row, Column, OldRow, OldCol, Element, Board, NewBoard):-
+        replace(Board, Row, Column, Element, TMP),
+        replace(TMP, OldRow, OldCol, ' ', NewBoard).
 
 winning_condition(State):-
           fail. % Por implementar
