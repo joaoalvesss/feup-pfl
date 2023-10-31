@@ -28,7 +28,13 @@ valid_move(State, NewState):-
           read_piece(Size, Piece), nl, 
           write(' > Where to move the piece? \n'),
           read_move(Size, Move), nl,
-          update_board(State, Move, Piece, NewState)   
+          %(check_valid_move(State, Piece, Move) ->
+          %    update_board(State, Move, NewState)
+          %;
+          %write(' > Invalid move!\n'), nl,
+          %valid_move(State, NewState)
+          %)
+          update_board(State, Move, Piece, NewState) %test only  
           .
 
 
