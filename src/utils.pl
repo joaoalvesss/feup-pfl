@@ -1,29 +1,18 @@
 :- use_module(library(between)).
 % Include utility predicates and helper functions here
 
-
-
-% ---------------------Insercao e replacing
-
+% ---------- INSERTION & REPLACING ----------
 
 add_list(List, Table, NewTable):-
     append( Table, [List], NewTable).
-
-
 
 copy_tail([], TableBuild, TableBuild).
 copy_tail([Head|Tail], TableBuild, NewTable):-
     add_list(Head, TableBuild, NTableBuild),
     copy_tail(Tail, NTableBuild, NewTable).
 
-
-
-
-
 replace(Table, Row, Col, Symbol, NewTable):-
     replace(Table, Row - 1, Col - 1, 0, 0, Symbol, [], NewTable).
-
-
 
 %Go to the correct row
 replace([Head|Tail], Row, Col, Acc_row, Acc_col, Symbol, TableBuild, NewTable):-
@@ -38,18 +27,13 @@ replace([Head|Tail], _, Col, _, Acc_col, Symbol, TableBuild, NewTable):-
     add_list(NewList, TableBuild, NTableBuild),
     copy_tail(Tail, NTableBuild, NewTable).
 
-
 replace_list_el( List, Index, Symbol, NewList):-
     replace_list_el( List, Index, 0, Symbol, [], NewList).
-
-
 
 replace_list_el( [Head|Tail], Index, Acc, Symbol, [], NewList):-
     Acc < Index,
     replace_list_el(Tail, Index, Acc + 1, Symbol, [Head], NewList),
     !.
-
-
 
 replace_list_el( [Head|Tail], Index, Acc, Symbol, ListBuild, NewList):-
     Acc < Index,
@@ -61,14 +45,10 @@ replace_list_el( [Head|Tail], _, _, Symbol, ListBuild, NewList):-
     append(ListBuild, [Symbol], TMP),
     append(TMP, Tail, NewList).
 
+% ---------- SEARCH ----------
 
-% ----------------------------- Procura
-
-
-%chamar esta funcao
 get_el_list(List, Index, Element):-
     get_el_list(List, Index - 1, 0, Element).
-
 
 get_el_list([Head|Tail], Index, Acc, Element):-
     Acc < Index,
@@ -77,9 +57,6 @@ get_el_list([Head|Tail], Index, Acc, Element):-
 get_el_list([Head|Tail], Index, _, Element):-
     Element = Head.
 
-
-
-%chamar esta funcao
 get_el(Board, Row, Col, Element):-
     get_el_board(Board, Row - 1, Col, 0, Element).
     
@@ -90,11 +67,7 @@ get_el_board([Head|Tail], Row, Col, Acc, Element):-
 get_el_board([Head|Tail], Row, Col, _, Element):-
     get_el_list(Head, Col, Element).
 
-
-
-
-
-% ----------------------------------- LEITURA
+% ---------- READING ----------
 
 get_option(Min,Max,Context,Value):-
     format('~a between ~d and ~d: ', [Context, Min, Max]),
@@ -112,7 +85,7 @@ read_number_aux(X,Acc):-
 read_number_aux(X,X).    
 
 
-% ------------------------------------------------------ GET INT
+% ---------- GET NUMBER ----------
 
 get_int(N):- 
     get_int(0, N).
@@ -133,7 +106,7 @@ get_int(Current, Result):-
     get_int(New, Result).
 
 
-% ------------------------------------------------------ READ INPUT
+% ---------- INPUTS -----------
 
 read_column(Size, Column) :-
     write(' > Column: '),
@@ -156,6 +129,7 @@ read_piece(Size, Piece) :-
      Piece = (Row-Column).    
 
 
+% ---------- OTHERS ----------
 clear_console:- 
     write('\33\[2J'). 
 

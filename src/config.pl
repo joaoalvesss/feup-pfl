@@ -7,7 +7,8 @@
 :- consult(utils).
 :- consult(data).
 
-% Game header
+% --------- GRAPHIC PART ----------
+
 bounce:-
      write('  ____                              \n'),                          
      write(' | __ )  ___  _   _ _ __   ___ ___  \n'),
@@ -20,43 +21,46 @@ bounce:-
      write(' |         To Game Menu!         |\n'),
      write(' ---------------------------------\n').
 
+bounce_game:-
+     write('  ____                              \n'),                          
+     write(' | __ )  ___  _   _ _ __   ___ ___  \n'),
+     write(' |  _ \\ / _ \\| | | | |_ \\ / __/ _ \\ \n'),
+     write(' | |_) | (_) | |_| | | | | (_|  __/ \n'),
+     write(' |____/ \\___/ \\__,_|_| |_|\\___\\___| \n').
 
+% ---------- MOVE VALIDATION ----------
 
 validate(Rcvd, Expctd, Valid) :-
-    (Rcvd == Expctd -> Valid = 1; Valid = 0).
-
+            (Rcvd == Expctd -> Valid = 1; Valid = 0).
 
 check_valid_move(State, Piece, Move, NewState, Valid) :-
-    game_state_pack(State, Board, Player, Opponent),
-    Move = (Row-Column),
-    get_el(Board, Row, Column, Element1),
-    %write('Element_1: '), write(Element1), nl,
-    validate(Element1, ' ', Valid1),
-    Piece = (OldRow-OldColumn),
-    get_el(Board, OldRow, OldColumn, Element2),
-    %write('Element_2: '), write(Element2), nl,
-    validate(Element2, Player, Valid2),
-    Valid is Valid1 + Valid2,
-    update_board(State, Move, Piece, NewState, Valid).
-
-
+            game_state_pack(State, Board, Player, Opponent),
+            Move = (Row-Column),
+            get_el(Board, Row, Column, Element1),
+            validate(Element1, ' ', Valid1),
+            write(' > Valid1: '), write(Valid1), nl, !,
+            Piece = (OldRow-OldColumn),
+            get_el(Board, OldRow, OldColumn, Element2),
+            validate(Element2, Player, Valid2),
+            write(' > Valid2: '), write(Valid2), nl, !, 
+            Valid is Valid1 + Valid2,
+            update_board(State, Move, Piece, NewState, Valid).
 
 valid_move(State, NewState):-
-          game_state_pack(State, Board, Player, Opponent),
-          length(Board, Size),
-          %write(' > Which piece to move? \n'),
-          read_piece(Size, Piece), nl, 
-          %write(' > Where to move the piece? \n'),
-          read_move(Size, Move), nl,
-          check_valid_move(State, Piece, Move, NewState, Valid), 
-          %write('Valid = '), write(Valid), nl,
-          Valid > 1,
-          !.
+            game_state_pack(State, Board, Player, Opponent),
+            length(Board, Size),
+            read_piece(Size, Piece), nl, 
+            read_move(Size, Move), nl,
+            check_valid_move(State, Piece, Move, NewState, Valid), 
+            Valid > 1, 
+            !.
           
 valid_move(State, NewState):-
-          write(' > Invalid move!\n'), nl,
-          valid_move(State, NewState)
-          .
+            write(' > Invalid move!'), nl, nl, 
+            valid_move(State, NewState).
+
+% ---------- BOARD UPDATING ----------
+
 update_board(State, Move, Piece, NewState, 0).
 update_board(State, Move, Piece, NewState, 1).
 update_board(State, Move, Piece, NewState, 2):- 
@@ -70,9 +74,11 @@ place_piece(Row, Column, OldRow, OldCol, Element, Board, NewBoard):-
         replace(Board, Row, Column, Element, TMP),
         replace(TMP, OldRow, OldCol, ' ', NewBoard).
 
+
+% ---------- WINNING CONDITION ----------
+
 winning_condition(State):-
           fail. % Por implementar
-
 
 
 % ---------- DFS ----------
