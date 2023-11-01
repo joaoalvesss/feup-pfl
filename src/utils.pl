@@ -3,6 +3,9 @@
 
 
 
+% ---------------------Insercao e replacing
+
+
 add_list(List, Table, NewTable):-
     append( Table, [List], NewTable).
 
@@ -59,9 +62,39 @@ replace_list_el( [Head|Tail], _, _, Symbol, ListBuild, NewList):-
     append(TMP, Tail, NewList).
 
 
+% ----------------------------- Procura
+
+
+%chamar esta funcao
+get_el_list(List, Index, Element):-
+    get_el_list(List, Index - 1, 0, Element).
+
+
+get_el_list([Head|Tail], Index, Acc, Element):-
+    Acc < Index,
+    get_el_list(Tail, Index, Acc + 1, Element).
+
+get_el_list([Head|Tail], Index, _, Element):-
+    Element = Head.
 
 
 
+%chamar esta funcao
+get_el(Board, Row, Col, Element):-
+    get_el_board(Board, Row - 1, Col, 0, Element).
+    
+get_el_board([Head|Tail], Row, Col, Acc, Element):-
+    Acc < Row,
+    get_el_board(Tail, Row, Col, Acc + 1, Element).
+
+get_el_board([Head|Tail], Row, Col, _, Element):-
+    get_el_list(Head, Col, Element).
+
+
+
+
+
+% ----------------------------------- LEITURA
 
 get_option(Min,Max,Context,Value):-
     format('~a between ~d and ~d: ', [Context, Min, Max]),
