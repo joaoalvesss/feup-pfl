@@ -21,32 +21,45 @@ bounce:-
      write(' ---------------------------------\n').
 
 
+
+validate(Rcvd, Expctd, Valid) :-
+    (Rcvd == Expctd -> Valid = 1; Valid = 0).
+
+
+check_valid_move(State, Piece, Move, NewState, Valid) :-
+    game_state_pack(State, Board, Player, Opponent),
+    Move = (Row-Column),
+    get_el(Board, Row, Column, Element1),
+    %write('Element_1: '), write(Element1), nl,
+    validate(Element1, ' ', Valid1),
+    Piece = (OldRow-OldColumn),
+    get_el(Board, OldRow, OldColumn, Element2),
+    %write('Element_2: '), write(Element2), nl,
+    validate(Element2, Player, Valid2),
+    Valid is Valid1 + Valid2,
+    update_board(State, Move, Piece, NewState, Valid).
+
+
+
 valid_move(State, NewState):-
           game_state_pack(State, Board, Player, Opponent),
           length(Board, Size),
-          write(' > Which piece to move? \n'),
+          %write(' > Which piece to move? \n'),
           read_piece(Size, Piece), nl, 
-          write(' > Where to move the piece? \n'),
+          %write(' > Where to move the piece? \n'),
           read_move(Size, Move), nl,
-          %(check_valid_move(State, Piece, Move) ->
-          %    update_board(State, Move, NewState)
-          %;
-          %write(' > Invalid move!\n'), nl,
-          %valid_move(State, NewState)
-          %)
-          update_board(State, Move, Piece, NewState) %test only  
+          check_valid_move(State, Piece, Move, NewState, Valid), 
+          %write('Valid = '), write(Valid), nl,
+          Valid > 1,
+          !.
+          
+valid_move(State, NewState):-
+          write(' > Invalid move!\n'), nl,
+          valid_move(State, NewState)
           .
-
-
-check_valid_move(State, Piece, Move):-
-          game_state_pack(State, Board, Player, Opponent),
-          Move = (Row-Column),  
-          nth0(Row, Board, BoardRow),
-          nth0(BoardColumn, BoardRow, Element),
-          %write('Element: \''), %write(Element), %write('\''), nl,
-          Element == ' '.
-
-update_board(State, Move, Piece, NewState):- 
+update_board(State, Move, Piece, NewState, 0).
+update_board(State, Move, Piece, NewState, 1).
+update_board(State, Move, Piece, NewState, 2):- 
           Move = (Row-Column), 
           Piece = (OldRow-OldCol),
           game_state_pack(State, Board, CurrentPlayer, Opponent),
