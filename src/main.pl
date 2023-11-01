@@ -30,7 +30,7 @@ play(Curr, Path, Path):-
 
 play(Curr, Path, States):- 
         game_state_pack(Curr, Board, Player1, Player2),
-        %clear_console, nl, nl, bounce_game, nl,
+        clear_console, nl, nl, bounce_game, nl,
         write(' > '), write(Player1), write(' pieces to play now!\n\n'),
         display_game(Board),
         move(Curr, Next),

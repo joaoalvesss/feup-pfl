@@ -38,11 +38,9 @@ check_valid_move(State, Piece, Move, NewState, Valid) :-
             Move = (Row-Column),
             get_el(Board, Row, Column, Element1),
             validate(Element1, ' ', Valid1),
-            write(' > Valid1: '), write(Valid1), nl, !,
             Piece = (OldRow-OldColumn),
             get_el(Board, OldRow, OldColumn, Element2),
             validate(Element2, Player, Valid2),
-            write(' > Valid2: '), write(Valid2), nl, !, 
             Valid is Valid1 + Valid2,
             update_board(State, Move, Piece, NewState, Valid).
 
