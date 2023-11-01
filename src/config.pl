@@ -73,46 +73,44 @@ place_piece(Row, Column, OldRow, OldCol, Element, Board, NewBoard):-
 winning_condition(State):-
           fail. % Por implementar
 
-% group_check(Board, Player, Group)
-% Group is a list of coordinates representing a connected group of checkers belonging to Player
-% Board is the game board
 
-group_check(Board, Player, Group) :-
-    find_starting_point(Board, Player, StartX, StartY),
-    (StartX >= 0, StartY >= 0 ->
-        dfs(Board, Player, StartX, StartY, [], Group)
-    ;   Group = []
-    ).
 
-% Find a starting point for the DFS search
-find_starting_point(Board, Player, X, Y) :-
-    length(Board, Size),
-    between(0, Size-1, X),
-    between(0, Size-1, Y),
-    get_element(X, Y, Board, Player).
+% ---------- DFS ----------
+dfs(Board, Row, Col, Visited, Cluster) :-
+    valid_position(Board, Row, Col),
+    get_element(Board, Row, Col, Piece),
+    Piece \= ' ',
+    \+ member((Row, Col), Visited),
+    append(Visited, [(Row, Col)], NewVisited),
+    find_neighboring_pieces(Board, Row, Col, Piece, NewVisited, NewCluster),
+    append(Cluster, NewCluster, Cluster).
 
-% Depth-First Search to find a connected group
-dfs(_, _, X, Y, Visited, Group) :-
-    \+ member((X, Y), Visited),  % Avoid revisiting already visited squares
-    get_element(X, Y, Board, Player),
-    Player \= ' ',  % Not an empty square
-    append(Visited, [(X, Y)], NewVisited),
-    find_neighbours(X, Y, Neighbours),
-    find_connected_neighbours(Board, Player, NewVisited, Neighbours, NewGroup),
-    append(NewGroup, [(X, Y)], Group).
 
-% Find connected neighbours of the same Player
-find_connected_neighbours(_, _, Visited, [], Visited).
-find_connected_neighbours(Board, Player, Visited, [(X, Y) | Rest], Group) :-
-    (X >= 0, Y >= 0, X < Size, Y < Size, \+ member((X, Y), Visited) ->
-        get_element(X, Y, Board, Player),
-        append(Visited, [(X, Y)], NewVisited),
-        find_neighbours(X, Y, Neighbours),
-        find_connected_neighbours(Board, Player, NewVisited, Neighbours, NewGroup),
-        append(NewGroup, [(X, Y)], Group)
-    ;   find_connected_neighbours(Board, Player, Visited, Rest, Group)
-    ).
+find_neighboring_pieces(_, _, _, _, [], []).
+find_neighboring_pieces(Board, Row, Col, Piece, Visited, Cluster) :-
+    neighbor_positions(Row, Col, NeighborRow, NeighborCol),
+    dfs(Board, NeighborRow, NeighborCol, Visited, NewCluster),
+    get_element(Board, NeighborRow, NeighborCol, NeighborPiece),
+    NeighborPiece = Piece,
+    append([(NeighborRow, NeighborCol)], NewCluster, Cluster).
+find_neighboring_pieces(_, _, _, _, _, []).
 
-% Define valid neighbours
-find_neighbours(X, Y, Neighbours) :-
-    Neighbours = [(X-1, Y), (X+1, Y), (X, Y-1), (X, Y+1)].
+
+neighbor_positions(Row, Col, NewRow, NewCol) :-
+    neighbor_offsets(Offsets),
+    member((OffsetRow, OffsetCol), Offsets),
+    NewRow is Row + OffsetRow,
+    NewCol is Col + OffsetCol.
+
+neighbor_offsets([(1, 0), (-1, 0), (0, 1), (0, -1)]).  % Up, Down, Left, Right
+
+
+get_element(Board, Row, Col, Element) :-
+    nth0(Row, Board, RowList),
+    nth0(Col, RowList, Element).
+
+valid_position(Board, Row, Col) :-
+    length(Board, NumRows),
+    length(Board, NumCols),
+    Row >= 0, Row < NumRows,
+    Col >= 0, Col < NumCols.
