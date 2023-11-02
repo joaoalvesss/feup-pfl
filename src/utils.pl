@@ -136,3 +136,50 @@ clear_console:-
 get_element(X, Y, BOARD, ELEMENT) :-
     nth0(Y, BOARD, LINE),
     nth0(X, LINE, ELEMENT).    
+
+
+% --------- BFS -------------
+
+
+
+bfs(List, GroupSize, Player, Board):-
+    bfs(List, GroupSize, 0, Player, Board, []).
+
+
+bfs([], GroupSize, Acc, Player, Board, Visited):-
+    GroupSize is Acc.
+
+bfs([Head|Tail], GroupSize, Acc, Player, Board, Visited):-
+    Head = (Row-Col),
+    append(Visited, [Head], NVisited),                          % atualiza visited                               
+    get_el(Board, Row, Col, Element),                           % Processa se Head é igual 
+    (
+    Element == Player ->
+        NAcc is Acc + 1,
+        neighbor_positions(Board, Row, Col, NeighborList, Visited),  % adicona coordenadas adjacentes ao final da lista
+        append(Tail, NeighborList, NTail),
+        bfs(NTail, GroupSize, NAcc, Player, Board, NVisited);
+        bfs(Tail, GroupSize, Acc, Player, Board, NVisited)
+    ).
+
+
+% Adjacent position checker
+neighbor_positions(Board, Row, Col, NeighborList, Visited):-
+    neighbor_offsets(Offsets),
+    findall((NewRow-NewCol), (
+        member((OffsetRow-OffsetCol), Offsets),
+        NewRow is Row + OffsetRow,
+        NewCol is Col + OffsetCol,
+        valid_position(Board, NewRow, NewCol, Visited)
+    ), NeighborList).
+
+neighbor_offsets([((1)-(0)), ((-1)-(0)), ((0)-(1)), ((0)-(-1))]).  % Up, Down, Left, Right
+
+% Valid position
+valid_position(Board, Row, Col, Visited):-
+    length(Board, NumRows),
+    length(Board, NumCols),
+    Row >= 1, Row =< NumRows,
+    Col >= 1, Col =< NumCols,
+    \+ (member((Row-Col), Visited)).
+ 
