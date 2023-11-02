@@ -1,26 +1,27 @@
-# Bounce - Prolog Game Implementation
+# Bounce - A Two-Player Strategy Game
 
 ## Introduction
-Bounce is a two-player game played on a square board of any even size. The game is designed by Mark Steere in August 2023.
+Bounce is a captivating two-player strategy game, designed by Mark Steere in August 2023. Played on a square board of any even size, Bounce offers a unique and challenging gaming experience. This repository contains a Prolog implementation of the game.
 
 ## Group
-- Group Members:
-     * João Brandão Alves - up202108670
-     * Diogo Silva Leandro - up202005304
-     
-- Contribution: 
-     * João -
-     * Diogo -
+- **Group Members:**
+  - João Brandão Alves - up202108670
+  - Diogo Silva Leandro - up202005304
+
+- **Contribution:**
+  - João - 
+  - Diogo -
 
 ## Installation and Execution
 
-
-## Description of the Game
+### Description of the Game
 Bounce is a two-player board game played on a square board of any even size. The objective is to have all of your checkers in one group at the end of your turn to win.
 
-For detailed game rules, you can refer to the [official rule sheet](chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://marksteeregames.com/Bounce_rules.pdf) provided by Mark Steere.
+### Official Rule Sheet
+For detailed game rules, you can refer to the [official rule sheet](https://marksteeregames.com/Bounce_rules.pdf) provided by Mark Steere.
 
 ## Game Parameters
+
 ### Game Introduction
 Bounce is a two-player game designed by Mark Steere in August 2023. It is played on a square board of any even size. The objective of the game is to strategically move your checkers to form a monocolored, orthogonally interconnected group.
 
@@ -38,5 +39,5 @@ The primary objective in Bounce is to ensure that, at the conclusion of your tur
 ### Checker Removal
 If you have no legal moves available on your turn, you must instead remove one of your checkers from the board. This concludes your turn.
 
-
-
+### Author's Note
+"Feel free to publish this rule sheet and to program the game of Bounce. No licensing fee or royalties are expected. However, please don't change the name or the rules, and please attribute the game to me, Mark Steere. My other games can be found at [marksteeregames.com](https://marksteeregames.com)."
