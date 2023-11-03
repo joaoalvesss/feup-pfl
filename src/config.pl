@@ -42,7 +42,16 @@ check_valid_move(State, Piece, Move, NewState, Valid) :-
             get_el(Board, OldRow, OldColumn, Element2),
             validate(Element2, Player, Valid2), !,
             Valid is Valid1 + Valid2,
-            update_board(State, Move, Piece, NewState, Valid).
+            bfs([Piece], OldSize, Player, Board), !, 
+            update_board(State, Move, Piece, NewState, Valid), 
+            game_state_pack(NewState, NewBoard, Player_, Opponent_),
+            bfs([Move], NewSize, Player, NewBoard), !,
+            (
+                NewSize =< OldSize ->
+                update_board(State, Piece, Move, NewState, Valid),
+                Valid = 0;
+                Valid = 2
+            ).
 
 valid_move(State, NewState):-
             game_state_pack(State, Board, Player, Opponent),
@@ -54,7 +63,7 @@ valid_move(State, NewState):-
             !.
           
 valid_move(State, NewState):-
-            write(' > Invalid move!'), nl, nl, 
+            write(' > Invalid move, try again!'), nl, nl, 
             valid_move(State, NewState).
 
 % ---------- BOARD UPDATING ----------
@@ -72,49 +81,8 @@ place_piece(Row, Column, OldRow, OldCol, Element, Board, NewBoard):-
         replace(Board, Row, Column, Element, TMP),
         replace(TMP, OldRow, OldCol, ' ', NewBoard).
 
-
 % ---------- WINNING CONDITION ----------
 
 winning_condition(State):-
           fail. % Por implementar
 
-
-% ---------- DFS ----------
-dfs(Board, Row, Col, Visited, Cluster) :-
-    valid_position(Board, Row, Col),
-    get_element(Board, Row, Col, Piece),
-    Piece \= ' ',
-    \+ member((Row, Col), Visited),
-    append(Visited, [(Row, Col)], NewVisited),
-    find_neighboring_pieces(Board, Row, Col, Piece, NewVisited, NewCluster),
-    append(Cluster, NewCluster, Cluster).
-
-
-find_neighboring_pieces(_, _, _, _, [], []).
-find_neighboring_pieces(Board, Row, Col, Piece, Visited, Cluster) :-
-    neighbor_positions(Row, Col, NeighborRow, NeighborCol),
-    dfs(Board, NeighborRow, NeighborCol, Visited, NewCluster),
-    get_element(Board, NeighborRow, NeighborCol, NeighborPiece),
-    NeighborPiece = Piece,
-    append([(NeighborRow, NeighborCol)], NewCluster, Cluster).
-find_neighboring_pieces(_, _, _, _, _, []).
-
-
-neighbor_positions(Row, Col, NewRow, NewCol) :-
-    neighbor_offsets(Offsets),
-    member((OffsetRow, OffsetCol), Offsets),
-    NewRow is Row + OffsetRow,
-    NewCol is Col + OffsetCol.
-
-neighbor_offsets([(1, 0), (-1, 0), (0, 1), (0, -1)]).  % Up, Down, Left, Right
-
-
-get_element(Board, Row, Col, Element) :-
-    nth0(Row, Board, RowList),
-    nth0(Col, RowList, Element).
-
-valid_position(Board, Row, Col) :-
-    length(Board, NumRows),
-    length(Board, NumCols),
-    Row >= 0, Row < NumRows,
-    Col >= 0, Col < NumCols.
