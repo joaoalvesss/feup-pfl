@@ -60,7 +60,6 @@ valid_move(State, NewState):-
         read_move(Size, Move), nl, 
         check_valid_move(State, Piece, Move, NewState, Valid),
         Valid > 1,
-        game_state_pack(NewState, _, _, _, NewRedPieces, NewBluePieces),
         !.
 
 
@@ -77,7 +76,9 @@ update_board(State, Move, Piece, NewState, 2):-
     Piece = (OldRow-OldCol),
     game_state_pack(State, Board, CurrentPlayer, Opponent, RedPieces, BluePieces),
     place_piece(Row, Column, OldRow, OldCol, CurrentPlayer, Board, NewBoard),
-    game_state_pack(NewState, NewBoard, Opponent, CurrentPlayer, NewRedPieces, NewBluePieces).
+    count_pieces(NewBoard, CurrentPlayer, CountCurPlayer),
+    count_pieces(NewBoard, Opponent, CountOpponet),
+    game_state_pack(NewState, NewBoard, Opponent, CurrentPlayer, CountCurPlayer, CountOpponet).
 
 place_piece(Row, Column, OldRow, OldCol, Element, Board, NewBoard):-
         replace(Board, Row, Column, Element, TMP),

@@ -39,14 +39,11 @@ play(Curr, Path, States):-
                 write(' > Red checkers to play now!'), nl, nl;
                 write(' > Blue checkers to play now!'), nl, nl
         ),
+        write(' > Red Pieces: '), write(RedPieces), nl,
+        write(' > Blue Pieces: '), write(BluePieces), nl,
         display_game(Board),
         move(Curr, Next),
         play(Next, [Next|Path], States).
 
 game_state_pack(GameState, Board, CurrentPlayer, Opponent, RedPieces, BluePieces) :-
-        GameState = [Board, CurrentPlayer, Opponent, RedPieces, BluePieces],
-        count_pieces(Board, 'R', RedPieces),
-        count_pieces(Board, 'B', BluePieces),
-        write(' > Red Pieces: '), write(RedPieces), nl,
-        write(' > Blue Pieces: '), write(BluePieces), nl.
-
+        GameState = [Board, CurrentPlayer, Opponent, RedPieces, BluePieces].
