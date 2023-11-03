@@ -34,7 +34,7 @@ validate(Rcvd, Expctd, Valid) :-
             (Rcvd == Expctd -> Valid = 1; Valid = 0).
 
 check_valid_move(State, Piece, Move, NewState, Valid) :-
-            game_state_pack(State, Board, Player, Opponent),
+            game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces),
             Move = (Row-Column),
             get_el(Board, Row, Column, Element1),
             validate(Element1, ' ', Valid1), !,
@@ -44,7 +44,7 @@ check_valid_move(State, Piece, Move, NewState, Valid) :-
             Valid is Valid1 + Valid2,
             bfs([Piece], OldSize, Player, Board), !, 
             update_board(State, Move, Piece, NewState, Valid), 
-            game_state_pack(NewState, NewBoard, Player_, Opponent_),
+            game_state_pack(NewState, NewBoard, Player_, Opponent_, RedPieces_, BluePieces_),
             bfs([Move], NewSize, Player, NewBoard), !,
             (
                 NewSize =< OldSize ->
@@ -54,14 +54,16 @@ check_valid_move(State, Piece, Move, NewState, Valid) :-
             ).
 
 valid_move(State, NewState):-
-            game_state_pack(State, Board, Player, Opponent),
-            length(Board, Size),
-            read_piece(Size, Piece), nl, 
-            read_move(Size, Move), nl,
-            check_valid_move(State, Piece, Move, NewState, Valid), 
-            Valid > 1, 
-            !.
-          
+        game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces),
+        length(Board, Size),
+        read_piece(Size, Piece), nl,
+        read_move(Size, Move), nl, 
+        check_valid_move(State, Piece, Move, NewState, Valid),
+        Valid > 1,
+        game_state_pack(NewState, _, _, _, NewRedPieces, NewBluePieces),
+        !.
+
+
 valid_move(State, NewState):-
             write(' > Invalid move, try again!'), nl, nl, 
             valid_move(State, NewState).
@@ -71,11 +73,11 @@ valid_move(State, NewState):-
 update_board(State, Move, Piece, NewState, 0).
 update_board(State, Move, Piece, NewState, 1).
 update_board(State, Move, Piece, NewState, 2):- 
-          Move = (Row-Column), 
-          Piece = (OldRow-OldCol),
-          game_state_pack(State, Board, CurrentPlayer, Opponent),
-          place_piece(Row, Column, OldRow, OldCol, CurrentPlayer, Board, NewBoard),
-          game_state_pack(NewState, NewBoard, Opponent, CurrentPlayer).
+    Move = (Row-Column), 
+    Piece = (OldRow-OldCol),
+    game_state_pack(State, Board, CurrentPlayer, Opponent, RedPieces, BluePieces),
+    place_piece(Row, Column, OldRow, OldCol, CurrentPlayer, Board, NewBoard),
+    game_state_pack(NewState, NewBoard, Opponent, CurrentPlayer, NewRedPieces, NewBluePieces).
 
 place_piece(Row, Column, OldRow, OldCol, Element, Board, NewBoard):-
         replace(Board, Row, Column, Element, TMP),
@@ -84,5 +86,7 @@ place_piece(Row, Column, OldRow, OldCol, Element, Board, NewBoard):-
 % ---------- WINNING CONDITION ----------
 
 winning_condition(State):-
-          fail. % Por implementar
+        % bfs na ultima peca movida pelo jogador
+        % checkar numero de peças do ultimo jogador que jogou com o res do bfs
+        fail.
 

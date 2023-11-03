@@ -2,9 +2,12 @@
 :- consult(board).
 
 % ---------- INITIAL STATE ----------
-initial(Size, InitialState):-
+initial(Size, InitialState) :-
     create_board(Size, Board),
-    game_state_pack(InitialState, Board, 'R', 'B').
+    count_pieces(Board, 'R', RedPieces),
+    count_pieces(Board, 'B', BluePieces),
+    game_state_pack(InitialState, Board, 'R', 'B', RedPieces, BluePieces).
+
 
 % ---------- FINAL STATE ----------
 final(State):- 
@@ -28,9 +31,9 @@ play:-
 play(Curr, Path, Path):- 
         final(Curr), !.
 
-play(Curr, Path, States):- 
-        game_state_pack(Curr, Board, Player1, Player2),
-        clear_console, nl, nl, bounce_game, nl,
+play(Curr, Path, States):-
+        game_state_pack(Curr, Board, Player1, Player2, RedPieces, BluePieces),
+        %clear_console, nl, nl, bounce_game, nl,
         (
                 Player1 == 'R' ->
                 write(' > Red checkers to play now!'), nl, nl;
@@ -40,5 +43,10 @@ play(Curr, Path, States):-
         move(Curr, Next),
         play(Next, [Next|Path], States).
 
-game_state_pack(GameState, Board, CurrentPlayer, Opponent) :-
-    GameState = [Board, CurrentPlayer, Opponent].
+game_state_pack(GameState, Board, CurrentPlayer, Opponent, RedPieces, BluePieces) :-
+        GameState = [Board, CurrentPlayer, Opponent, RedPieces, BluePieces],
+        count_pieces(Board, 'R', RedPieces),
+        count_pieces(Board, 'B', BluePieces),
+        write(' > Red Pieces: '), write(RedPieces), nl,
+        write(' > Blue Pieces: '), write(BluePieces), nl.
+

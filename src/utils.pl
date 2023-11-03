@@ -180,3 +180,19 @@ valid_position(Board, Row, Col, Visited):-
     Col >= 1, Col =< NumCols,
     \+ (member((Row-Col), Visited)).
  
+count_pieces(Board, Color, Count) :-
+    count_pieces(Board, Color, 0, Count).
+
+count_pieces([], _, Count, Count).
+
+count_pieces([Row|Rest], Color, CurrentCount, Count) :-
+    count_row(Row, Color, RowCount),
+    NewCount is CurrentCount + RowCount,
+    count_pieces(Rest, Color, NewCount, Count).
+
+count_row([], _, 0).
+count_row([Piece|Rest], Color, Count) :-
+    (Piece = Color -> RowCount = 1; RowCount = 0),
+    count_row(Rest, Color, RestCount),
+    Count is RowCount + RestCount.
+
