@@ -43,13 +43,14 @@ check_valid_move(State, Piece, Move, NewState, Valid) :-
             validate(Element2, Player, Valid2), !,
             Valid is Valid1 + Valid2,
             bfs([Piece], OldSize, Player, Board), !, 
-            update_board(State, Move, Piece, NewState, Valid), 
-            game_state_pack(NewState, NewBoard, Player_, Opponent_),
+            update_board(State, Move, Piece, NewState_, Valid), 
+            game_state_pack(NewState_, NewBoard, Player_, Opponent_),
             bfs([Move], NewSize, Player, NewBoard), !,
             (
                 NewSize =< OldSize ->
-                update_board(State, Piece, Move, NewState, Valid),
+                update_board(NewState_, Piece, Move, NewState, Valid),
                 Valid = 0;
+                NewState = NewState_,
                 Valid = 2
             ).
 
