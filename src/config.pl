@@ -1,6 +1,5 @@
 % Specify game configuration and settings here
 
-
 :- use_module(library(lists)).
 :- use_module(library(between)).
 :- use_module(library(system), [now/1]).
@@ -34,24 +33,30 @@ validate(Rcvd, Expctd, Valid) :-
             (Rcvd == Expctd -> Valid = 1; Valid = 0).
 
 check_valid_move(State, Piece, Move, NewState, Valid) :-
-            game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces),
-            Move = (Row-Column),
-            get_el(Board, Row, Column, Element1),
-            validate(Element1, ' ', Valid1), !,
-            Piece = (OldRow-OldColumn),
-            get_el(Board, OldRow, OldColumn, Element2),
-            validate(Element2, Player, Valid2), !,
-            Valid is Valid1 + Valid2,
-            bfs([Piece], OldSize, Player, Board), !, 
-            update_board(State, Move, Piece, NewState, Valid), 
-            game_state_pack(NewState, NewBoard, Player_, Opponent_, RedPieces_, BluePieces_),
-            bfs([Move], NewSize, Player, NewBoard), !,
-            (
-                NewSize =< OldSize ->
-                update_board(State, Piece, Move, NewState, Valid),
-                Valid = 0;
-                Valid = 2
-            ).
+    game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces),
+    Move = (Row-Column),
+    get_el(Board, Row, Column, Element1),
+    validate(Element1, ' ', Valid1), !,
+    Piece = (OldRow-OldColumn),
+    get_el(Board, OldRow, OldColumn, Element2),
+    validate(Element2, Player, Valid2), !,
+    Valid is Valid1 + Valid2,
+    bfs([Piece], OldSize, Player, Board), !, 
+    update_board(State, Move, Piece, NewState, Valid), 
+    game_state_pack(NewState, NewBoard, Player_, Opponent_, RedPieces_, BluePieces_),
+    bfs([Move], NewSize, Player, NewBoard), !,
+    write(' > New Size: '), write(NewSize), nl,
+    (
+        NewSize =< OldSize ->
+        update_board(State, Piece, Move, NewState, Valid),
+        Valid = 0;
+        (
+            (Player == 'R' -> NewSize = RedPieces; NewSize = BluePieces),
+            winning_condition(FinalState);
+            Valid = 2
+        )
+    ).
+
 
 valid_move(State, NewState):-
         game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces),
@@ -87,7 +92,12 @@ place_piece(Row, Column, OldRow, OldCol, Element, Board, NewBoard):-
 % ---------- WINNING CONDITION ----------
 
 winning_condition(State):-
-        % bfs na ultima peca movida pelo jogador
-        % checkar numero de peças do ultimo jogador que jogou com o res do bfs
-        fail.
-
+        %clear_console, 
+        nl, nl,
+        (
+            Player = 'R' -> red_wins;
+            blue_wins
+        ), 
+        nl, write(' > Enter any key to continue... '), 
+        read(Char),
+        play.

@@ -1,5 +1,4 @@
 :- use_module(library(between)).
-% Include utility predicates and helper functions here
 
 % ---------- INSERTION & REPLACING ----------
 
@@ -66,24 +65,6 @@ get_el_board([Head|Tail], Row, Col, Acc, Element):-
 
 get_el_board([Head|Tail], Row, Col, _, Element):-
     get_el_list(Head, Col, Element).
-
-% ---------- READING ----------
-
-get_option(Min,Max,Context,Value):-
-    format('~a between ~d and ~d: ', [Context, Min, Max]),
-    repeat,
-    read_number(Value),
-    between(Min, Max, Value), !.
-
-read_number(X):-
-    read_number_aux(X,0).
-read_number_aux(X,Acc):- 
-    get_code(C),
-    between(48, 57, C), !,
-    Acc1 is 10*Acc + (C - 48),
-    read_number_aux(X,Acc1).
-read_number_aux(X,X).    
-
 
 % ---------- GET NUMBER ----------
 
@@ -195,4 +176,21 @@ count_row([Piece|Rest], Color, Count) :-
     (Piece = Color -> RowCount = 1; RowCount = 0),
     count_row(Rest, Color, RestCount),
     Count is RowCount + RestCount.
+
+
+% ---------- ASCII ARTS ----------
+
+red_wins:-
+    write(' ____          _  __        ___           _ '), nl,
+    write('|  _ \\ ___  __| | \\ \\      / (_)_ __  ___| |'), nl,
+    write('| |_) / _ \\/ _` |  \\ \\ / /| | \'_ \\/ __| |'), nl,
+    write('|  _ <  __/ (_| |   \\ V  V / | | | | \\__ |_|'), nl,
+    write('|_| \\_\\___|\\__,_|    \\_/\\_/  |_|_| |_|___(_)'), nl.
+
+blue_wins:-
+    write(' ____  _             __        ___           _ '), nl,
+    write('| __ )| |_   _  ___  \\ \\      / (_)_ __  ___| |'), nl,
+    write('|  _ \\| | | | |/ _ \\  \\ \\ / /| | \'_ \\/ __| |'), nl,
+    write('| |_) | | |_| |  __/   \\ V  V / | | | | \\__ |_|'), nl,
+    write('|____/|_|\\__,_|\\___|    \\_/\\_/  |_|_| |_|___(_)'), nl.
 

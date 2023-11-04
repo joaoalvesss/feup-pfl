@@ -8,11 +8,6 @@ initial(Size, InitialState) :-
     count_pieces(Board, 'B', BluePieces),
     game_state_pack(InitialState, Board, 'R', 'B', RedPieces, BluePieces).
 
-
-% ---------- FINAL STATE ----------
-final(State):- 
-        winning_condition(State).
-
 % ---------- MOVE ----------
 move(State, NewState):-
         valid_move(State, NewState).
@@ -28,9 +23,6 @@ play:-
         play(Init, [Init], States),
         reverse(States, Path), write(Path).
 
-play(Curr, Path, Path):- 
-        final(Curr), !.
-
 play(Curr, Path, States):-
         game_state_pack(Curr, Board, Player1, Player2, RedPieces, BluePieces),
         %clear_console, nl, nl, bounce_game, nl,
@@ -40,7 +32,7 @@ play(Curr, Path, States):-
                 write(' > Blue checkers to play now!'), nl, nl
         ),
         write(' > Red Pieces: '), write(RedPieces), nl,
-        write(' > Blue Pieces: '), write(BluePieces), nl,
+        write(' > Blue Pieces: '), write(BluePieces), nl, nl, 
         display_game(Board),
         move(Curr, Next),
         play(Next, [Next|Path], States).
