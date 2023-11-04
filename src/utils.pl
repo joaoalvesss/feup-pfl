@@ -89,25 +89,23 @@ move_eval(Board, Piece, Move, Player, BoardSize):-
     NewSize > OldSize,
     !.
 
-possible_move(Board, Player, BoardSize):-
+possible_move(Board, Player, BoardSize, FoundP, FoundM):-
     Move = (1-1),
-    possible_move(Board, Move, Move, Player, BoardSize).
+    possible_move(Board, Move, Move, Player, BoardSize, FoundP, FoundM).
 
-
-
-possible_move(Board, Piece, Move, Player, BoardSize):-
+possible_move(Board, Piece, Move, Player, BoardSize, FoundP, FoundM):-
     \+ (last_move_combination(Piece, Move, BoardSize)),
     TmpBoard = Board,    
     \+ (move_eval(TmpBoard, Piece, Move, Player, BoardSize)), 
     next_move_combination(Piece, Move, NPiece, NMove, BoardSize),
-    possible_move(Board, NPiece, NMove, Player, BoardSize),
+    possible_move(Board, NPiece, NMove, Player, BoardSize, FoundP, FoundM),
     !.
 
-
-
-possible_move(Board, Piece, Move, Player, BoardSize):-
+possible_move(Board, Piece, Move, Player, BoardSize, FoundP, FoundM):-
     TmpBoard = Board,
-    move_eval(TmpBoard, Piece, Move, Player, BoardSize).
+    move_eval(TmpBoard, Piece, Move, Player, BoardSize),
+    FoundP = Piece,
+    FoundM = Move.
 
 
 
@@ -248,12 +246,12 @@ bfs([], GroupSize, Acc, Player, Board, Visited):-
 
 bfs([Head|Tail], GroupSize, Acc, Player, Board, Visited):-
     Head = (Row-Col),
-    append(Visited, [Head], NVisited),                          % atualiza visited                               
-    get_el(Board, Row, Col, Element),                           % Processa se Head é igual 
+    append(Visited, [Head], NVisited),                                                        
+    get_el(Board, Row, Col, Element),                           
     (
     Element == Player ->
         NAcc is Acc + 1,
-        neighbor_positions(Board, Row, Col, NeighborList, Visited),  % adiciona coordenadas adjacentes ao final da lista
+        neighbor_positions(Board, Row, Col, NeighborList, Visited),
         append(Tail, NeighborList, NTail),
         bfs(NTail, GroupSize, NAcc, Player, Board, NVisited);
         bfs(Tail, GroupSize, Acc, Player, Board, NVisited)
@@ -312,5 +310,24 @@ blue_wins:-
     write('|  _ \\| | | | |/ _ \\  \\ \\ / /| | \'_ \\/ __| |'), nl,
     write('| |_) | | |_| |  __/   \\ V  V / | | | | \\__ |_|'), nl,
     write('|____/|_|\\__,_|\\___|    \\_/\\_/  |_|_| |_|___(_)'), nl.
+
+bounce:-
+     write('  ____                              \n'),                          
+     write(' | __ )  ___  _   _ _ __   ___ ___  \n'),
+     write(' |  _ \\ / _ \\| | | | |_ \\ / __/ _ \\ \n'),
+     write(' | |_) | (_) | |_| | | | | (_|  __/ \n'),
+     write(' |____/ \\___/ \\__,_|_| |_|\\___\\___| \n'),
+     write('\n'),
+     write(' ---------------------------------\n'),
+     write(' |            Welcome            |\n'),
+     write(' |         To Game Menu!         |\n'),
+     write(' ---------------------------------\n').
+
+bounce_game:-
+     write('  ____                              \n'),                          
+     write(' | __ )  ___  _   _ _ __   ___ ___  \n'),
+     write(' |  _ \\ / _ \\| | | | |_ \\ / __/ _ \\ \n'),
+     write(' | |_) | (_) | |_| | | | | (_|  __/ \n'),
+     write(' |____/ \\___/ \\__,_|_| |_|\\___\\___| \n').    
 
 
