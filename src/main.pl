@@ -16,7 +16,7 @@ move(State, NewState):-
 play:- 
         clear_console,
         bounce, nl,
-        write(' > Size of board(4, 6 or 8): '),
+        write(' > Size of board("4.", "6." or "8."): '),
         read(Size),
         initial(Size, Init),
         nl, nl,
@@ -25,14 +25,14 @@ play:-
 
 play(Curr, Path, States):-
         game_state_pack(Curr, Board, Player1, Player2, RedPieces, BluePieces),
-        %clear_console, nl, nl, bounce_game, nl,
+        clear_console, nl, nl, bounce_game, nl,
         (
                 Player1 == 'R' ->
                 write(' > Red checkers to play now!'), nl, nl;
                 write(' > Blue checkers to play now!'), nl, nl
         ),
-        write(' > Red Pieces: '), write(RedPieces), nl,
-        write(' > Blue Pieces: '), write(BluePieces), nl, nl, 
+        %write(' > Red Pieces: '), write(RedPieces), nl,
+        %write(' > Blue Pieces: '), write(BluePieces), nl, nl, 
         display_game(Board),
         move(Curr, Next),
         play(Next, [Next|Path], States).

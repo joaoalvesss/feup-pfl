@@ -45,14 +45,15 @@ check_valid_move(State, Piece, Move, NewState, Valid) :-
     update_board(State, Move, Piece, NewState, Valid), 
     game_state_pack(NewState, NewBoard, Player_, Opponent_, RedPieces_, BluePieces_),
     bfs([Move], NewSize, Player, NewBoard), !,
-    write(' > New Size: '), write(NewSize), nl,
+    %write(' > New Size: '), write(NewSize), nl,
     (
         NewSize =< OldSize ->
         update_board(State, Piece, Move, NewState, Valid),
         Valid = 0;
         (
-            (Player == 'R' -> NewSize = RedPieces; NewSize = BluePieces),
-            winning_condition(FinalState);
+            (Player = 'R' -> NewSize >= RedPieces; 
+            Player = 'B' -> NewSize >= BluePieces),
+            winning_condition(FinalState, Player);
             Valid = 2
         )
     ).
@@ -91,13 +92,26 @@ place_piece(Row, Column, OldRow, OldCol, Element, Board, NewBoard):-
 
 % ---------- WINNING CONDITION ----------
 
-winning_condition(State):-
-        %clear_console, 
-        nl, nl,
-        (
-            Player = 'R' -> red_wins;
-            blue_wins
-        ), 
-        nl, write(' > Enter any key to continue... '), 
-        read(Char),
-        play.
+winning_condition(State, Player):-
+    clear_console, 
+    nl, nl,
+    (
+        Player = 'R' -> red_wins;
+        Player = 'B' -> blue_wins
+    ), 
+    nl, write(' > Enter "play." to start a new game or "exit." to quit: '), nl, 
+    read(PlayerChoice),
+    write(PlayerChoice),
+    handle_user_choice(PlayerChoice).
+
+handle_user_choice('play'):- 
+    play.
+
+handle_user_choice('exit'):- 
+    write(' > Thanks for playing! Goodbye.'), halt.
+
+handle_user_choice(Other) :- 
+    nl, write(' > Invalid choice. Enter "play." to start a new game or "exit." to quit: '),
+    read(NewChoice),
+    handle_user_choice(NewChoice).
+
