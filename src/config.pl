@@ -52,7 +52,7 @@ check_valid_move(State, Piece, Move, NewState, Valid) :-
         Valid = 0;
         (
             (Player = 'R' -> NewSize >= RedPieces; 
-            Player = 'B' -> NewSize >= BluePieces),
+            Player = 'B' -> NewSize >= BluePieces)->
             winning_condition(FinalState, Player);
             Valid = 2
         )

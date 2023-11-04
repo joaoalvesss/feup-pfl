@@ -74,21 +74,20 @@ get_el_board([Head|Tail], Row, Col, _, Element):-
 
 % ---------- CHECK ---------------
 
-
 move_eval(Board, Piece, Move, Player, BoardSize):-
     Move = (Row-Column),
     get_el(Board, Row, Column, Element1),
-    validate(Element1, ' ', Valid1), !,
+    Element1 == ' ',
+    !,
     Piece = (OldRow-OldColumn),
     get_el(Board, OldRow, OldColumn, Element2),
-    validate(Element2, Player, Valid2), !,
+    Element2 == Player,
+    !,
     bfs([Piece], OldSize, Player, Board), !, 
     place_piece(Row, Column, OldRow, OldColumn, Player, Board, NewBoard),
     bfs([Move], NewSize, Player, NewBoard), 
     NewSize > OldSize,
     !.
-
-
 
 possible_move(Board, Player, BoardSize):-
     Move = (1-1),
@@ -108,9 +107,7 @@ possible_move(Board, Piece, Move, Player, BoardSize):-
 
 possible_move(Board, Piece, Move, Player, BoardSize):-
     TmpBoard = Board,
-    \+ (move_eval(TmpBoard, Piece, Move, Player, BoardSize)).
-
-
+    move_eval(TmpBoard, Piece, Move, Player, BoardSize).
 
 
 
