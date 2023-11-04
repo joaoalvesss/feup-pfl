@@ -11,7 +11,9 @@ copy_tail([Head|Tail], TableBuild, NewTable):-
     copy_tail(Tail, NTableBuild, NewTable).
 
 replace(Table, Row, Col, Symbol, NewTable):-
-    replace(Table, Row - 1, Col - 1, 0, 0, Symbol, [], NewTable).
+    NRow is Row - 1,
+    NCol is Col - 1,
+    replace(Table, NRow, NCol, 0, 0, Symbol, [], NewTable).
 
 %Go to the correct row
 replace([Head|Tail], Row, Col, Acc_row, Acc_col, Symbol, TableBuild, NewTable):-
@@ -31,13 +33,15 @@ replace_list_el( List, Index, Symbol, NewList):-
 
 replace_list_el( [Head|Tail], Index, Acc, Symbol, [], NewList):-
     Acc < Index,
-    replace_list_el(Tail, Index, Acc + 1, Symbol, [Head], NewList),
+    NAcc is Acc + 1,
+    replace_list_el(Tail, Index, NAcc, Symbol, [Head], NewList),
     !.
 
 replace_list_el( [Head|Tail], Index, Acc, Symbol, ListBuild, NewList):-
     Acc < Index,
     append(ListBuild, [Head], TMP),
-    replace_list_el(Tail, Index, Acc + 1, Symbol, TMP, NewList),
+    NAcc is Acc + 1,
+    replace_list_el(Tail, Index, NAcc, Symbol, TMP, NewList),
     !.
 
 replace_list_el( [Head|Tail], _, _, Symbol, ListBuild, NewList):-
@@ -51,7 +55,8 @@ get_el_list(List, Index, Element):-
 
 get_el_list([Head|Tail], Index, Acc, Element):-
     Acc < Index,
-    get_el_list(Tail, Index, Acc + 1, Element).
+    get_el_list(Tail, Index, Acc + 1, Element),
+    !.
 
 get_el_list([Head|Tail], Index, _, Element):-
     Element = Head.
@@ -61,10 +66,53 @@ get_el(Board, Row, Col, Element):-
     
 get_el_board([Head|Tail], Row, Col, Acc, Element):-
     Acc < Row,
-    get_el_board(Tail, Row, Col, Acc + 1, Element).
+    get_el_board(Tail, Row, Col, Acc + 1, Element),
+    !.
 
 get_el_board([Head|Tail], Row, Col, _, Element):-
     get_el_list(Head, Col, Element).
+
+% ---------- CHECK ---------------
+
+
+move_eval(Board, Piece, Move, Player, BoardSize):-
+    Move = (Row-Column),
+    get_el(Board, Row, Column, Element1),
+    validate(Element1, ' ', Valid1), !,
+    Piece = (OldRow-OldColumn),
+    get_el(Board, OldRow, OldColumn, Element2),
+    validate(Element2, Player, Valid2), !,
+    bfs([Piece], OldSize, Player, Board), !, 
+    place_piece(Row, Column, OldRow, OldColumn, Player, Board, NewBoard),
+    bfs([Move], NewSize, Player, NewBoard), 
+    NewSize > OldSize,
+    !.
+
+
+
+possible_move(Board, Player, BoardSize):-
+    Move = (1-1),
+    possible_move(Board, Move, Move, Player, BoardSize).
+
+
+
+possible_move(Board, Piece, Move, Player, BoardSize):-
+    \+ (last_move_combination(Piece, Move, BoardSize)),
+    TmpBoard = Board,    
+    \+ (move_eval(TmpBoard, Piece, Move, Player, BoardSize)), 
+    next_move_combination(Piece, Move, NPiece, NMove, BoardSize),
+    possible_move(Board, NPiece, NMove, Player, BoardSize),
+    !.
+
+
+
+possible_move(Board, Piece, Move, Player, BoardSize):-
+    TmpBoard = Board,
+    \+ (move_eval(TmpBoard, Piece, Move, Player, BoardSize)).
+
+
+
+
 
 % ---------- GET NUMBER ----------
 
@@ -85,6 +133,80 @@ get_int(Current, Result):-
     between(48, 57, Input),
     New is Current * 10 + (Input - 48),
     get_int(New, Result).
+
+
+% --------- NEXT MOVE ---------------
+
+
+last_move(Move, BoardSize):-
+    Move = (Row-Col),
+    Row == BoardSize,
+    Col == BoardSize.
+
+
+last_move_combination(Piece, Move, BoardSize):-
+    last_move(Move, BoardSize),
+    last_move(Piece, BoardSize).
+
+
+
+next_move(Move, Next_Move, BoardSize):-
+    Move = (Row-Col),
+    Row =< BoardSize,
+    Col < BoardSize,
+    NCol is Col + 1,
+    Next_Move = (Row-NCol),
+    !.
+
+
+next_move(Move, Next_Move, BoardSize):-
+    Move = (Row-Col),
+    Row < BoardSize,
+    Col == BoardSize,
+    NRow is Row + 1,
+    Next_Move = (NRow-1),
+    !.
+
+
+
+next_move_combination(Piece, Move, NPiece, NMove, BoardSize):-
+    Piece = (OldRow-OldCol),
+    OldRow == BoardSize,
+    OldCol == BoardSize,
+    NPiece = Piece,
+    Move = (NewRow-NewCol),
+    NewRow =< BoardSize,
+    NewCol < BoardSize,
+    next_move(Move, NMove, BoardSize),
+    !.
+
+next_move_combination(Piece, Move, NPiece, NMove, BoardSize):-
+    Piece = (OldRow-OldCol),
+    OldRow < BoardSize,
+    Move = (NewRow-NewCol),
+    NewRow == BoardSize,
+    NewCol == BoardSize,
+    NMove = (1-1),
+    next_move(Piece, NPiece, BoardSize),
+    !.
+
+
+next_move_combination(Piece, Move, NPiece, NMove, BoardSize):-
+    Piece = (OldRow-OldCol),
+    OldRow == BoardSize,
+    OldCol < BoardSize,
+    Move = (NewRow-NewCol),
+    NewRow == BoardSize,
+    NewCol == BoardSize,
+    NMove = (1-1),
+    next_move(Piece, NPiece, BoardSize),
+    !.
+    
+next_move_combination(Piece, Move, NPiece, NMove, BoardSize):-  
+    NPiece = Piece,
+    next_move(Move, NMove, BoardSize),
+    !.
+
 
 
 % ---------- INPUTS -----------

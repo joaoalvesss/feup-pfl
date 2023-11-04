@@ -62,6 +62,14 @@ check_valid_move(State, Piece, Move, NewState, Valid) :-
 valid_move(State, NewState):-
         game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces),
         length(Board, Size),
+        \+ (possible_move(Board, Player, Size)),
+        write(' > There Isnt A Valid Move'), nl.
+
+
+valid_move(State, NewState):-
+        write(' > There Is A Valid Move'), nl,
+        game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces),
+        length(Board, Size),
         read_piece(Size, Piece), nl,
         read_move(Size, Move), nl, 
         check_valid_move(State, Piece, Move, NewState, Valid),
@@ -93,7 +101,7 @@ place_piece(Row, Column, OldRow, OldCol, Element, Board, NewBoard):-
 % ---------- WINNING CONDITION ----------
 
 winning_condition(State, Player):-
-    clear_console, 
+    %clear_console, 
     nl, nl,
     (
         Player = 'R' -> red_wins;
