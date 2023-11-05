@@ -108,8 +108,7 @@ get_win(Player, Board, NewSize, Win):-
     count_pieces(Board, Player, N),
     write('Counted '), write(N), nl,
     write('New Size '), write(NewSize), nl,
-    NNewSize is NewSize - 1,
-    win(Player, N, NNewSize, Win).
+    win(Player, N, NewSize, Win).
 
 win('R', RedPieces, NewSize, Win):-
     NewSize >= RedPieces,

@@ -267,23 +267,42 @@ get_element(X, Y, BOARD, ELEMENT) :-
 
 % --------- BFS -------------
 
+
+list_size(List, Size):-
+    list_size(List, Size, 0).
+
+list_size([], Size, Acc):-
+    Size is Acc. 
+
+
+list_size([Head|Tail], Size, Acc):-
+    NAcc is Acc + 1,
+    list_size(Tail, Size, NAcc). 
+
+
+
 bfs(List, GroupSize, Player, Board):-
-    bfs(List, GroupSize, 0, Player, Board, []).
+    bfs(List, GroupSize, 0, Player, Board, [], [], Visited).
 
-bfs([], GroupSize, Acc, Player, Board, Visited):-
-    GroupSize is Acc.
 
-bfs([Head|Tail], GroupSize, Acc, Player, Board, Visited):-
+bfs([], GroupSize, Acc, Player, Board, Visited, MyVisited, FinalVisited):-
+    sort(MyVisited, FinalVisited),
+    list_size(FinalVisited, GroupSize).
+
+
+bfs([Head|Tail], GroupSize, Acc, Player, Board, Visited, MyVisited, FinalVisited):-
     Head = (Row-Col),
     append(Visited, [Head], NVisited),                          % atualiza visited                               
     get_el(Board, Row, Col, Element),                           % Processa se Head é igual 
     (
     Element == Player ->
         NAcc is Acc + 1,
-        neighbor_positions(Board, Row, Col, NeighborList, Visited),  % adiciona coordenadas adjacentes ao final da lista
+        %write('New el : '), write(Head), nl,
+        neighbor_positions(Board, Row, Col, NeighborList, Visited),  % adicona coordenadas adjacentes ao final da lista
         append(Tail, NeighborList, NTail),
-        bfs(NTail, GroupSize, NAcc, Player, Board, NVisited);
-        bfs(Tail, GroupSize, Acc, Player, Board, NVisited)
+        append(MyVisited, [Head], NMyVisited),
+        bfs(NTail, GroupSize, NAcc, Player, Board, NVisited, NMyVisited, FinalVisited);
+        bfs(Tail, GroupSize, Acc, Player, Board, NVisited, MyVisited, FinalVisited)
     ).
 
 
