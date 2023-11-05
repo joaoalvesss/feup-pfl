@@ -24,9 +24,6 @@ initial(3, Bot1, Bot2, Size, InitialState) :-
     count_pieces(Board, 'B', BluePieces),
     game_state_pack(InitialState, Board, 'R', 'B', RedPieces, BluePieces, Bot1, Bot2, 1).
 
-
-
-
 initial(Size, InitialState) :-
     create_board(Size, Board),
     count_pieces(Board, 'R', RedPieces),
@@ -34,7 +31,6 @@ initial(Size, InitialState) :-
     game_state_pack(InitialState, Board, 'R', 'B', RedPieces, BluePieces, 1).
 
 % ---------- MOVE ----------
-
 
 move(State, NewState):-
         game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),

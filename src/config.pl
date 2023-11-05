@@ -50,24 +50,26 @@ check_valid_move(State, Piece, Move, NewState, Valid) :-
         NewSize =< OldSize ->
         update_board(State, Piece, Move, NewState, Valid),
         Valid = 0;
-        (
-            (Player = 'R' -> NewSize >= RedPieces; 
-            Player = 'B' -> NewSize >= BluePieces)->
-            winning_condition(FinalState, Player);
-            Valid = 2
-        )
+        get_win(Player, NewBoard, NewSize, Win),
+        (Win == 1 -> winning_condition(NewState, Player); Valid1 = 1),
+        Valid = 2
     ).
+
 
 
 valid_move(State, NewState):-
         game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
         length(Board, Size),
         \+ (possible_move(Board, Player, Size, L1, L2)),
-        write(' > There Isnt A Valid Move'), nl.
+        write(' > There is no valid move'), nl,
+        remove_piece(Board, NewBoard, Player),
+        count_pieces(NewBoard, 'R', CountCurPlayer),
+        count_pieces(NewBoard, 'B', CountOpponet),
+        game_state_pack(NewState, NewBoard, Opponent, Player, CountCurPlayer, CountOpponet).
 
 
 valid_move(State, NewState):-
-        write(' > There Is A Valid Move'), nl,
+        %write(' > There Is A Valid Move'), nl,
         game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
         length(Board, Size),
         read_piece(Size, Piece), nl,
@@ -101,9 +103,33 @@ place_piece(Row, Column, OldRow, OldCol, Element, Board, NewBoard):-
 
 % ---------- WINNING CONDITION ----------
 
+
+get_win(Player, Board, NewSize, Win):-
+    count_pieces(Board, Player, N),
+    write('Counted '), write(N), nl,
+    write('New Size '), write(NewSize), nl,
+    NNewSize is NewSize - 1,
+    win(Player, N, NNewSize, Win).
+
+win('R', RedPieces, NewSize, Win):-
+    NewSize >= RedPieces,
+    Win is 1, !.
+
+win('R', RedPieces, NewSize, Win):-
+    Win is 0.
+
+win('B', BluePieces, NewSize, Win):-
+    NewSize >= BluePieces,
+    Win is 1, !.
+
+win('B', BluePieces, NewSize, Win):-
+    Win is 0.
+
 winning_condition(State, Player):-
     %clear_console, 
     nl, nl,
+    game_state_pack(State, Board, CurrentPlayer, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
+    display_game(Board),
     (
         Player = 'R' -> red_wins;
         Player = 'B' -> blue_wins
@@ -123,4 +149,5 @@ handle_user_choice(Other) :-
     nl, write(' > Invalid choice. Enter "play." to start a new game or "exit." to quit: '),
     read(NewChoice),
     handle_user_choice(NewChoice).
+
 

@@ -26,7 +26,11 @@ bot_move(State, NewState, BotDif):-
     choose_move(BotDif, LPieces, LMoves, Piece, Move, Board),
     write(' > Piece : '), write(Piece), write(' - > '),
     write('Move : '), write(Move), nl,
-    update_board(State, Move, Piece, NewState, 2).
+    update_board(State, Move, Piece, NewState, 2),
+    game_state_pack(NewState, NewBoard, Player_, Opponent_, RedPieces_, BluePieces_, Bot1_, Bot2_, Turn_),
+    bfs([Move], NewSize, Player, NewBoard), !,
+    get_win(Player, NewBoard, NewSize, Win),
+        (Win == 1 -> winning_condition(NewState, Player); Valid1 = 1).
 
 
 
