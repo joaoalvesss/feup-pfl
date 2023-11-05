@@ -89,25 +89,44 @@ move_eval(Board, Piece, Move, Player, BoardSize):-
     NewSize > OldSize,
     !.
 
-possible_move(Board, Player, BoardSize):-
+possible_move(Board, Player, BoardSize, FoundP, FoundM):-
     Move = (1-1),
-    possible_move(Board, Move, Move, Player, BoardSize).
+    possible_move(Board, Move, Move, Player, BoardSize, FoundP, FoundM, [], []).
 
 
+possible_move(Board, Piece, Move, Player, BoardSize, FoundP, FoundM, Acc1, Acc2):-
+    last_move_combination(Piece, Move, BoardSize), 
+    move_eval(TmpBoard, Piece, Move, Player, BoardSize),
+    append(Acc1, [Piece], NAcc1),
+    append(Acc2, [Move], NAcc2),
+    FoundP = Acc1,
+    FoundM = Acc2,
+    !.
 
-possible_move(Board, Piece, Move, Player, BoardSize):-
+possible_move(Board, Piece, Move, Player, BoardSize, FoundP, FoundM, Acc1, Acc2):-
+    last_move_combination(Piece, Move, BoardSize), 
+    FoundP = Acc1,
+    FoundM = Acc2,
+    !.
+
+
+possible_move(Board, Piece, Move, Player, BoardSize, FoundP, FoundM, Acc1, Acc2):-
     \+ (last_move_combination(Piece, Move, BoardSize)),
     TmpBoard = Board,    
     \+ (move_eval(TmpBoard, Piece, Move, Player, BoardSize)), 
     next_move_combination(Piece, Move, NPiece, NMove, BoardSize),
-    possible_move(Board, NPiece, NMove, Player, BoardSize),
+    possible_move(Board, NPiece, NMove, Player, BoardSize, FoundP, FoundM, Acc1, Acc2),
     !.
 
 
-
-possible_move(Board, Piece, Move, Player, BoardSize):-
+possible_move(Board, Piece, Move, Player, BoardSize, FoundP, FoundM, Acc1, Acc2):-
     TmpBoard = Board,
-    move_eval(TmpBoard, Piece, Move, Player, BoardSize).
+    move_eval(TmpBoard, Piece, Move, Player, BoardSize),
+    next_move_combination(Piece, Move, NPiece, NMove, BoardSize),
+    append(Acc1, [Piece], NAcc1),
+    append(Acc2, [Move], NAcc2),
+    possible_move(Board, NPiece, NMove, Player, BoardSize, FoundP, FoundM, NAcc1, NAcc2),
+    !.
 
 
 
@@ -313,4 +332,11 @@ blue_wins:-
     write('| |_) | | |_| |  __/   \\ V  V / | | | | \\__ |_|'), nl,
     write('|____/|_|\\__,_|\\___|    \\_/\\_/  |_|_| |_|___(_)'), nl.
 
+
+
+
+% ----------------- Turn ------------------
+
+next_turn(1, 2).
+next_turn(2,1).
 

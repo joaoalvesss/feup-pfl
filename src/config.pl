@@ -33,7 +33,7 @@ validate(Rcvd, Expctd, Valid) :-
             (Rcvd == Expctd -> Valid = 1; Valid = 0).
 
 check_valid_move(State, Piece, Move, NewState, Valid) :-
-    game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces),
+    game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
     Move = (Row-Column),
     get_el(Board, Row, Column, Element1),
     validate(Element1, ' ', Valid1), !,
@@ -43,7 +43,7 @@ check_valid_move(State, Piece, Move, NewState, Valid) :-
     Valid is Valid1 + Valid2,
     bfs([Piece], OldSize, Player, Board), !, 
     update_board(State, Move, Piece, NewState, Valid), 
-    game_state_pack(NewState, NewBoard, Player_, Opponent_, RedPieces_, BluePieces_),
+    game_state_pack(NewState, NewBoard, Player_, Opponent_, RedPieces_, BluePieces_, Bot1_, Bot2_, Turn_),
     bfs([Move], NewSize, Player, NewBoard), !,
     %write(' > New Size: '), write(NewSize), nl,
     (
@@ -60,15 +60,15 @@ check_valid_move(State, Piece, Move, NewState, Valid) :-
 
 
 valid_move(State, NewState):-
-        game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces),
+        game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
         length(Board, Size),
-        \+ (possible_move(Board, Player, Size)),
+        \+ (possible_move(Board, Player, Size, L1, L2)),
         write(' > There Isnt A Valid Move'), nl.
 
 
 valid_move(State, NewState):-
         write(' > There Is A Valid Move'), nl,
-        game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces),
+        game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
         length(Board, Size),
         read_piece(Size, Piece), nl,
         read_move(Size, Move), nl, 
@@ -88,11 +88,12 @@ update_board(State, Move, Piece, NewState, 1).
 update_board(State, Move, Piece, NewState, 2):- 
     Move = (Row-Column), 
     Piece = (OldRow-OldCol),
-    game_state_pack(State, Board, CurrentPlayer, Opponent, RedPieces, BluePieces),
+    game_state_pack(State, Board, CurrentPlayer, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
     place_piece(Row, Column, OldRow, OldCol, CurrentPlayer, Board, NewBoard),
     count_pieces(NewBoard, CurrentPlayer, CountCurPlayer),
-    count_pieces(NewBoard, Opponent, CountOpponet),
-    game_state_pack(NewState, NewBoard, Opponent, CurrentPlayer, CountCurPlayer, CountOpponet).
+    count_pieces(NewBoard, Opponent, CountOpponet),     %possivel erro na linha de baixo
+    next_turn(Turn, NextTurn),
+    game_state_pack(NewState, NewBoard, Opponent, CurrentPlayer, CountCurPlayer, CountOpponet, Bot1, Bot2, NextTurn). 
 
 place_piece(Row, Column, OldRow, OldCol, Element, Board, NewBoard):-
         replace(Board, Row, Column, Element, TMP),
