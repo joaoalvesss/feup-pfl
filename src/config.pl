@@ -56,27 +56,32 @@ check_valid_move(State, Piece, Move, NewState, Valid) :-
     ).
 
 
-
+empty_list([], []).
 valid_move(State, NewState):-
         game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
         length(Board, Size),
-        \+ (possible_move(Board, Player, Size, L1, L2)),
-        write(' > There is no valid move'), nl,
-        remove_piece(Board, NewBoard, Player),
-        count_pieces(NewBoard, 'R', CountCurPlayer),
-        count_pieces(NewBoard, 'B', CountOpponet),
-        game_state_pack(NewState, NewBoard, Opponent, Player, CountCurPlayer, CountOpponet).
-
-
-valid_move(State, NewState):-
-        %write(' > There Is A Valid Move'), nl,
-        game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
-        length(Board, Size),
+        (possible_move(Board, Player, Size, L1, L2)),
+        \+ (empty_list(L1, L2)),
+        write('List 1'), write(L1), nl,
+        write('List 2'), write(L1), nl,
+        write(' > There Is A Valid Move'), nl,
         read_piece(Size, Piece), nl,
         read_move(Size, Move), nl, 
         check_valid_move(State, Piece, Move, NewState, Valid),
         Valid > 1,
         !.
+
+valid_move(State, NewState):-
+        game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
+        length(Board, Size),
+        write(' > There is no valid move'), nl, 
+        remove_piece(Board, NewBoard, Player),
+        count_pieces(NewBoard, 'R', CountCurPlayer),
+        count_pieces(NewBoard, 'B', CountOpponet),
+        next_turn(Turn, NextTurn),
+        game_state_pack(NewState, NewBoard, Opponent, Player, CountCurPlayer, CountOpponet, Bot1, Bot2, NextTurn), 
+        !.
+
 
 
 valid_move(State, NewState):-

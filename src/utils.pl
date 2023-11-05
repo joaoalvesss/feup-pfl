@@ -128,7 +128,7 @@ possible_move(Board, Piece, Move, Player, BoardSize, FoundP, FoundM, Acc1, Acc2)
     possible_move(Board, NPiece, NMove, Player, BoardSize, FoundP, FoundM, NAcc1, NAcc2),
     !.
 
-remove_piece(Board, NewBoard, Player, NewState):-
+remove_piece(Board, NewBoard, Player):-
         length(Board, Size),
         read_piece(Size, Piece),
         Piece = (Row-Column),

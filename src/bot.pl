@@ -32,6 +32,15 @@ bot_move(State, NewState, BotDif):-
     get_win(Player, NewBoard, NewSize, Win),
         (Win == 1 -> winning_condition(NewState, Player); Valid1 = 1).
 
+bot_move(State, NewState, BotDif):-
+    game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
+    write(' > There is no possible moves'), nl,
+    remove_piece(Board, NewBoard, Player),
+    count_pieces(NewBoard, 'R', CountCurPlayer),
+    count_pieces(NewBoard, 'B', CountOpponet),    
+    next_turn(Turn, NextTurn),
+    game_state_pack(NewState, NewBoard, Opponent, Player, CountCurPlayer, CountOpponet, Bot1, Bot2, NextTurn).
+    
 
 
 
