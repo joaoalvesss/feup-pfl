@@ -19,6 +19,9 @@ config_bot(3, Bot1, Bot2):-
 
 
 
+
+
+
 bot_move(State, NewState, BotDif):-
     game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
     length(Board, Size),
@@ -35,7 +38,7 @@ bot_move(State, NewState, BotDif):-
 bot_move(State, NewState, BotDif):-
     game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
     write(' > There is no possible moves'), nl,
-    remove_piece(Board, NewBoard, Player),
+    remove_piece(Board, NewBoard, Player, 1),
     count_pieces(NewBoard, 'R', CountCurPlayer),
     count_pieces(NewBoard, 'B', CountOpponet),    
     next_turn(Turn, NextTurn),

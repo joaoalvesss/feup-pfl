@@ -75,7 +75,7 @@ valid_move(State, NewState):-
         game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
         length(Board, Size),
         write(' > There is no valid move'), nl, 
-        remove_piece(Board, NewBoard, Player),
+        remove_piece(Board, NewBoard, Player, 0),
         count_pieces(NewBoard, 'R', CountCurPlayer),
         count_pieces(NewBoard, 'B', CountOpponet),
         next_turn(Turn, NextTurn),

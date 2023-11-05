@@ -72,6 +72,30 @@ get_el_board([Head|Tail], Row, Col, Acc, Element):-
 get_el_board([Head|Tail], Row, Col, _, Element):-
     get_el_list(Head, Col, Element).
 
+
+
+
+find_piece(Board, BoardSize, Player, Piece):-
+    Pos = (1-1),
+    find_piece(Board, BoardSize, Player, Piece, Pos).
+
+
+find_piece(Board, BoardSize, Player, Piece, Pos):-
+    Pos = (Row-Col),
+    get_el(Board, Row, Col, Element),
+    \+ (Element == Player),
+    \+ (last_move(Pos, BoardSize)),
+    next_move(Pos, NPos, BoardSize),
+    find_piece(Board, BoardSize, Player, Piece, NPos),
+    !.
+
+find_piece(Board, BoardSize, Player, Piece, Pos):-
+    Pos = (Row-Col),
+    get_el(Board, Row, Col, Element),
+    Element == Player,
+    Piece = Pos.
+
+
 % ---------- CHECK ---------------
 
 move_eval(Board, Piece, Move, Player, BoardSize):-
@@ -128,15 +152,23 @@ possible_move(Board, Piece, Move, Player, BoardSize, FoundP, FoundM, Acc1, Acc2)
     possible_move(Board, NPiece, NMove, Player, BoardSize, FoundP, FoundM, NAcc1, NAcc2),
     !.
 
-remove_piece(Board, NewBoard, Player):-
+remove_piece(Board, NewBoard, Player, 0):-
         length(Board, Size),
+        write(' > Choose a piece to remove : '), nl,
         read_piece(Size, Piece),
         Piece = (Row-Column),
         get_el(Board, Row, Column, Element),
         (
             Element == Player -> replace(Board, Row, Column, ' ', NewBoard);
-            write('Invalid piece to remove'), remove_piece(Board, NewBoard, Player)
+            write('Invalid piece to remove'), remove_piece(Board, NewBoard, Player, 0)
         ).
+
+remove_piece(Board, NewBoard, Player, 1):-
+        length(Board, Size),
+        find_piece(Board, Size, Player, Piece),
+        Piece = (Row-Column),
+        replace(Board, Row, Column, ' ', NewBoard).
+
 
 % ---------- GET NUMBER ----------
 
@@ -366,4 +398,7 @@ blue_wins:-
 
 next_turn(1, 2).
 next_turn(2,1).
+
+
+
 
