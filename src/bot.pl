@@ -1,6 +1,9 @@
 :- consult(utils).
 
 
+% config_bot(Option, Bot1, Bot2)
+% Setups the bot according to the user specification
+
 config_bot(1, Bot1, Bot2):-
     Bot1 = 0,
     Bot2 = 0.
@@ -20,7 +23,8 @@ config_bot(3, Bot1, Bot2):-
 
 
 
-
+% bot_move(State, NewState, BotDif)
+% Creates and processes the next bot move 
 
 bot_move(State, NewState, BotDif):-
     game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
@@ -45,6 +49,10 @@ bot_move(State, NewState, BotDif):-
     game_state_pack(NewState, NewBoard, Opponent, Player, CountCurPlayer, CountOpponet, Bot1, Bot2, NextTurn).
     
 
+
+
+% choose_move(BotDif, [HeadPieces|LPieces], [HeadMoves|LMoves], Piece, Move, Board)
+% chooses from a list of moves the next move a bot should do
 
 
 choose_move(BotDif, [HeadPieces|LPieces], [HeadMoves|LMoves], Piece, Move, Board):-

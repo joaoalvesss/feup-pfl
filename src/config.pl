@@ -1,4 +1,3 @@
-% Specify game configuration and settings here
 
 :- use_module(library(lists)).
 :- use_module(library(between)).
@@ -29,8 +28,17 @@ bounce_game:-
 
 % ---------- MOVE VALIDATION ----------
 
+
+% validate(Rcvd, Expctd, Valid)
+% Sets valid to 1 if -Rcvd and -Expctd have the same value
+
 validate(Rcvd, Expctd, Valid) :-
             (Rcvd == Expctd -> Valid = 1; Valid = 0).
+
+
+
+% check_valid_move(State, Piece, Move, NewState, Valid)
+% determines if a move is valid, and updates the board according to its validity
 
 check_valid_move(State, Piece, Move, NewState, Valid) :-
     game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
@@ -55,8 +63,9 @@ check_valid_move(State, Piece, Move, NewState, Valid) :-
         Valid = 2
     ).
 
+% valid_move(State, NewState)
+% Reads and processes a movement given by the user
 
-empty_list([], []).
 valid_move(State, NewState):-
         game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
         length(Board, Size),
@@ -83,12 +92,15 @@ valid_move(State, NewState):-
         !.
 
 
-
 valid_move(State, NewState):-
             write(' > Invalid move, try again!'), nl, nl, 
             valid_move(State, NewState).
 
 % ---------- BOARD UPDATING ----------
+
+
+% update_board(State, Move, Piece, NewState, Valid)
+% updates the board if -Valid is set to 2
 
 update_board(State, Move, Piece, NewState, 0).
 update_board(State, Move, Piece, NewState, 1).
@@ -102,18 +114,29 @@ update_board(State, Move, Piece, NewState, 2):-
     next_turn(Turn, NextTurn),
     game_state_pack(NewState, NewBoard, Opponent, CurrentPlayer, CountCurPlayer, CountOpponet, Bot1, Bot2, NextTurn). 
 
+
+
+% place_piece(Row, Column, OldRow, OldCol, Element, Board, NewBoard)
+% places a piece on the board
+
 place_piece(Row, Column, OldRow, OldCol, Element, Board, NewBoard):-
         replace(Board, Row, Column, Element, TMP),
         replace(TMP, OldRow, OldCol, ' ', NewBoard).
 
 % ---------- WINNING CONDITION ----------
 
+% get_win(Player, Board, NewSize, Win)
+% checks if the game should end
 
 get_win(Player, Board, NewSize, Win):-
     count_pieces(Board, Player, N),
     write('Counted '), write(N), nl,
     write('New Size '), write(NewSize), nl,
     win(Player, N, NewSize, Win).
+
+
+% win('R', RedPieces, NewSize, Win) 
+% sets -Win to 1 if a player wins the game
 
 win('R', RedPieces, NewSize, Win):-
     NewSize >= RedPieces,
@@ -129,8 +152,11 @@ win('B', BluePieces, NewSize, Win):-
 win('B', BluePieces, NewSize, Win):-
     Win is 0.
 
+
+% winning_condition(State, Player)
+% ends the game when a player wins
+
 winning_condition(State, Player):-
-    %clear_console, 
     nl, nl,
     game_state_pack(State, Board, CurrentPlayer, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
     display_game(Board),
@@ -142,6 +168,9 @@ winning_condition(State, Player):-
     read(PlayerChoice),
     write(PlayerChoice),
     handle_user_choice(PlayerChoice).
+
+% handle_user_choice(Option)
+% handles user input after a game ends
 
 handle_user_choice('play'):- 
     play.

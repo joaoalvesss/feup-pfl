@@ -5,6 +5,9 @@
 
 % ---------- INITIAL STATE ----------
 
+% initial(Option, Bot1, Bot2,Size, InitialState)
+% prepares game elements according to the user specification 
+
 initial(1, Bot1, Bot2, Size, InitialState) :-
     create_board(Size, Board),
     count_pieces(Board, 'R', RedPieces),
@@ -24,13 +27,11 @@ initial(3, Bot1, Bot2, Size, InitialState) :-
     count_pieces(Board, 'B', BluePieces),
     game_state_pack(InitialState, Board, 'R', 'B', RedPieces, BluePieces, Bot1, Bot2, 1).
 
-initial(Size, InitialState) :-
-    create_board(Size, Board),
-    count_pieces(Board, 'R', RedPieces),
-    count_pieces(Board, 'B', BluePieces),
-    game_state_pack(InitialState, Board, 'R', 'B', RedPieces, BluePieces, 1).
 
 % ---------- MOVE ----------
+
+% move(State, NewState)
+% prepares and does the next move 
 
 move(State, NewState):-
         game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
@@ -50,8 +51,6 @@ move(State, NewState, 1, Bot1, Bot2):-
         write('Turn 1, bot played'), nl
         .
 
-
-
 move(State, NewState, 2, Bot1, Bot2):-
         Bot2 == 0,
         write('Turn 2, player plays'), nl,
@@ -68,6 +67,10 @@ move(State, NewState, 2, Bot1, Bot2):-
 
 
 % ---------- PLAY ----------
+
+
+% starts the game
+
 play:- 
         clear_console,
         bounce, nl,
@@ -80,6 +83,9 @@ play:-
         nl, nl,
         play(Init, [Init], States),
         reverse(States, Path), write(Path).
+
+% play(Curr, Path, States)
+% Manages the game flow
 
 play(Curr, Path, States):-
         game_state_pack(Curr, Board, Player1, Player2, RedPieces, BluePieces, Bot1, Bot2, Turn),
@@ -94,6 +100,10 @@ play(Curr, Path, States):-
         display_game(Board),
         move(Curr, Next),
         play(Next, [Next|Path], States).
+
+
+
+% Represents the game elements 
 
 game_state_pack(GameState, Board, CurrentPlayer, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn) :-
         GameState = [Board, CurrentPlayer, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn].

@@ -1,7 +1,6 @@
 :- consult(data).
 :- consult(utils).
 
-% Define game board and related rules here
 
 % ---------- BOARD PRINT ----------
 print_top_indexes(N):-
