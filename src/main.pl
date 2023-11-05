@@ -6,20 +6,20 @@
 
 % initial(Option, Bot1, Bot2,Size, InitialState)
 % prepares game elements according to the user specification 
-initial(1, Bot1, Bot2, Size, InitialState) :-
+initial_state(1, Bot1, Bot2, Size, InitialState) :-
     create_board(Size, Board),
     count_pieces(Board, 'R', RedPieces),
     count_pieces(Board, 'B', BluePieces),
     game_state_pack(InitialState, Board, 'R', 'B', RedPieces, BluePieces, Bot1, Bot2, 1).
 
-initial(2, Bot1, Bot2, Size, InitialState) :-
+initial_state(2, Bot1, Bot2, Size, InitialState) :-
     create_board(Size, Board),
     count_pieces(Board, 'R', RedPieces),
     count_pieces(Board, 'B', BluePieces),
     game_state_pack(InitialState, Board, 'R', 'B', RedPieces, BluePieces, Bot1, Bot2, 1).
 
 
-initial(3, Bot1, Bot2, Size, InitialState) :-
+initial_state(3, Bot1, Bot2, Size, InitialState) :-
     create_board(Size, Board),
     count_pieces(Board, 'R', RedPieces),
     count_pieces(Board, 'B', BluePieces),
@@ -37,7 +37,7 @@ move(State, NewState):-
 move(State, NewState, 1, Bot1, Bot2):-
         Bot1 == 0,
         write(' > Turn 1, the player plays!'), nl,
-        valid_move(State, NewState),
+        move_user(State, NewState),
         write(' > Turn 1, the player played!'), nl, nl,
         !.
 
@@ -49,7 +49,7 @@ move(State, NewState, 1, Bot1, Bot2):-
 move(State, NewState, 2, Bot1, Bot2):-
         Bot2 == 0,
         write(' > Turn 2, the player plays!'), nl,
-        valid_move(State, NewState),
+        move_user(State, NewState),
         write(' > Turn 2, the player played!'), nl, nl,
         !.
 
@@ -71,7 +71,7 @@ play:-
         read(Opt),
         nl,
         config_bot(Opt, Bot1, Bot2),
-        initial(Opt, Bot1, Bot2, Size, Init),
+        initial_state(Opt, Bot1, Bot2, Size, Init),
         nl, nl,
         play(Init, [Init], States),
         reverse(States, Path), write(Path).

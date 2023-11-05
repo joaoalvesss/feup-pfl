@@ -122,15 +122,15 @@ move_eval(Board, Piece, Move, Player, BoardSize):-
     !.
 
 
-% possible_move(Board, Player, BoardSize, ListPieces, ListMoves)
+% valid_moves(Board, Player, BoardSize, ListPieces, ListMoves)
 % finds and stores all the possible moves on -ListPieces and -ListMoves
 % -ListPieces lists where a move starts and respective index of -ListMoves
 % lists the valid move associated to that piece
-possible_move(Board, Player, BoardSize, FoundP, FoundM):-
+valid_moves(Board, Player, BoardSize, FoundP, FoundM):-
     Move = (1-1),
-    possible_move(Board, Move, Move, Player, BoardSize, FoundP, FoundM, [], []).
+    valid_moves(Board, Move, Move, Player, BoardSize, FoundP, FoundM, [], []).
 
-possible_move(Board, Piece, Move, Player, BoardSize, FoundP, FoundM, Acc1, Acc2):-
+valid_moves(Board, Piece, Move, Player, BoardSize, FoundP, FoundM, Acc1, Acc2):-
     last_move_combination(Piece, Move, BoardSize), 
     move_eval(TmpBoard, Piece, Move, Player, BoardSize),
     append(Acc1, [Piece], NAcc1),
@@ -139,27 +139,27 @@ possible_move(Board, Piece, Move, Player, BoardSize, FoundP, FoundM, Acc1, Acc2)
     FoundM = Acc2,
     !.
 
-possible_move(Board, Piece, Move, Player, BoardSize, FoundP, FoundM, Acc1, Acc2):-
+valid_moves(Board, Piece, Move, Player, BoardSize, FoundP, FoundM, Acc1, Acc2):-
     last_move_combination(Piece, Move, BoardSize), 
     FoundP = Acc1,
     FoundM = Acc2,
     !.
 
-possible_move(Board, Piece, Move, Player, BoardSize, FoundP, FoundM, Acc1, Acc2):-
+valid_moves(Board, Piece, Move, Player, BoardSize, FoundP, FoundM, Acc1, Acc2):-
     \+ (last_move_combination(Piece, Move, BoardSize)),
     TmpBoard = Board,    
     \+ (move_eval(TmpBoard, Piece, Move, Player, BoardSize)), 
     next_move_combination(Piece, Move, NPiece, NMove, BoardSize),
-    possible_move(Board, NPiece, NMove, Player, BoardSize, FoundP, FoundM, Acc1, Acc2),
+    valid_moves(Board, NPiece, NMove, Player, BoardSize, FoundP, FoundM, Acc1, Acc2),
     !.
 
-possible_move(Board, Piece, Move, Player, BoardSize, FoundP, FoundM, Acc1, Acc2):-
+valid_moves(Board, Piece, Move, Player, BoardSize, FoundP, FoundM, Acc1, Acc2):-
     TmpBoard = Board,
     move_eval(TmpBoard, Piece, Move, Player, BoardSize),
     next_move_combination(Piece, Move, NPiece, NMove, BoardSize),
     append(Acc1, [Piece], NAcc1),
     append(Acc2, [Move], NAcc2),
-    possible_move(Board, NPiece, NMove, Player, BoardSize, FoundP, FoundM, NAcc1, NAcc2),
+    valid_moves(Board, NPiece, NMove, Player, BoardSize, FoundP, FoundM, NAcc1, NAcc2),
     !.
 
 

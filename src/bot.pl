@@ -26,13 +26,13 @@ config_bot(3, Bot1, Bot2):-
 bot_move(State, NewState, BotDif):-
     game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
     length(Board, Size),
-    possible_move(Board, Player, Size, LPieces, LMoves),        
+    valid_moves(Board, Player, Size, LPieces, LMoves),        
     choose_move(BotDif, LPieces, LMoves, Piece, Move, Board),
     update_board(State, Move, Piece, NewState, 2),
     game_state_pack(NewState, NewBoard, Player_, Opponent_, RedPieces_, BluePieces_, Bot1_, Bot2_, Turn_),
     bfs([Move], NewSize, Player, NewBoard), !,
     get_win(Player, NewBoard, NewSize, Win),
-        (Win == 1 -> winning_condition(NewState, Player); Valid1 = 1).
+        (Win == 1 -> game_over(NewState, Player); Valid1 = 1).
 
 bot_move(State, NewState, BotDif):-
     game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),

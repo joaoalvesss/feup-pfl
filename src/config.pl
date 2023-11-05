@@ -33,19 +33,17 @@ check_valid_move(State, Piece, Move, NewState, Valid) :-
         update_board(State, Piece, Move, NewState, Valid),
         Valid = 0;
         get_win(Player, NewBoard, NewSize, Win),
-        (Win == 1 -> winning_condition(NewState, Player); Valid1 = 1),
+        (Win == 1 -> game_over(NewState, Player); Valid1 = 1),
         Valid = 2
     ).
 
 
-% valid_move(State, NewState)
+% move_user(State, NewState)
 % Reads and processes a movement given by the user
-
-
-valid_move(State, NewState):-
+move_user(State, NewState):-
         game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
         length(Board, Size),
-        possible_move(Board, Player, Size, L1, L2),
+        valid_moves(Board, Player, Size, L1, L2),
         (empty_list(L1, L2)),
         write(' > There is no valid move, you have to remove a piece!'), nl, 
         remove_piece(Board, NewBoard, Player, 0),
@@ -55,7 +53,7 @@ valid_move(State, NewState):-
         game_state_pack(NewState, NewBoard, Opponent, Player, CountCurPlayer, CountOpponet, Bot1, Bot2, NextTurn), 
         !.
 
-valid_move(State, NewState):-
+move_user(State, NewState):-
         game_state_pack(State, Board, Player, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
         length(Board, Size),
         read_piece(Size, Piece), nl,
@@ -65,9 +63,9 @@ valid_move(State, NewState):-
         !.
 
 
-valid_move(State, NewState):-
+move_user(State, NewState):-
             write(' > Invalid move, try again!'), nl, nl, 
-            valid_move(State, NewState).
+            move_user(State, NewState).
 
 % ---------- BOARD UPDATING ----------
 
@@ -118,9 +116,9 @@ win('B', BluePieces, NewSize, Win):-
     Win is 0.
 
 
-% winning_condition(State, Player)
+% game_over(State, Player)
 % ends the game when a player wins
-winning_condition(State, Player):-
+game_over(State, Player):-
     nl, nl,
     game_state_pack(State, Board, CurrentPlayer, Opponent, RedPieces, BluePieces, Bot1, Bot2, Turn),
     display_game(Board),
