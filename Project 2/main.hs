@@ -58,7 +58,7 @@ run (instruction:rest, stack, state) = case instruction of
      Fals -> run (rest, Boolean False : stack, state)
      Equ -> run (rest, comparisonOperation (\x y -> Boolean (x == y)) stack, state)
      Le -> run (rest, comparisonOperation (\x y -> Boolean (toInt x <= toInt y)) stack, state)
-     And -> run (rest, binaryOperation (\x y -> if toInt x /= 0 && toInt y /= 0 then Boolean True else Boolean False) stack, state)
+     And -> run (rest, binaryOperation (\x y -> if toBool x /= 0 && toBool y /= 0 then Boolean True else Boolean False) stack, state)
      Neg -> run (rest, unaryOperation (\x -> negateElement x) stack, state)
      Fetch var -> run (rest, stateLookup var stack state : stack, state)
      Store var -> run (rest, stackTail stack, stateUpdate var (stackHead stack) state)
@@ -67,7 +67,11 @@ run (instruction:rest, stack, state) = case instruction of
      Loop c1 c2 -> run ((c1 ++ [Branch (c2 ++ [Loop c1 c2]) [Noop]]) ++ rest, stack, state)
      where
      toInt (Int n) = n
-     toInt _ = error "Invalid conversion to integer"
+     toInt (Boolean True) = 1
+     toInt (Boolean False) = 0
+     toBool (Boolean True) = 1
+     toBool (Boolean False) = 0
+     toBool (Int n) = error "Run-time error"
 
 
 -- Helper function to handle comparisonOperation
