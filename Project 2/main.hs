@@ -71,16 +71,20 @@ run (instruction:rest, stack, state) = case instruction of
      toInt (Boolean False) = 0
      toBool (Boolean True) = 1
      toBool (Boolean False) = 0
-     toBool (Int n) = error "Run-time error"
+     toBool (Int n) = error "Run-time error 1"
 
 
 -- Helper function to handle comparisonOperation
 comparisonOperation :: (Element -> Element -> Element) -> Stack -> Stack
-comparisonOperation op (x:y:xs) = op x y : xs
+comparisonOperation op (x:y:xs)
+  | isInt x && isInt y = op x y : xs
+  | otherwise = error "Run-time error 2"
+  where
+    isInt (Int _) = True
+    isInt _ = False
 comparisonOperation _ stack = stack
 
 
--- Helper functions
 binaryOperation :: (Element -> Element -> Element) -> Stack -> Stack
 binaryOperation op (x:y:xs) = op x y : xs
 binaryOperation _ stack = stack
@@ -103,7 +107,7 @@ stackTail _ = error "Empty stack"
 
 stateLookup :: String -> Stack -> State -> Element
 stateLookup var stack state =
-  fromMaybe (error "Variable not found") (lookup var state)
+  fromMaybe (error "Run-time error") (lookup var state)
 
 stateUpdate :: String -> Element -> State -> State
 stateUpdate var val state =
@@ -131,30 +135,69 @@ testAssembler code = (stack2Str stack, state2Str state)
 -- testAssembler [Tru,Tru,Store "y", Fetch "x",Tru]
 -- You should get an exception with the string: "Run-time error"
 
-
 -- Part 2
 
 -- TODO: Define the types Aexp, Bexp, Stm and Program
 
--- compA :: Aexp -> Code
-compA = undefined -- TODO
+data Aexp =
+  IntExp Integer |  -- Integer constant
+  VarExp String |   -- Variable reference
+  AddExp Aexp Aexp | -- Addition expression
+  MulExp Aexp Aexp |   -- Multiplication expression
+  NegateExp Aexp  -- Negate a number
+  deriving Show
 
--- compB :: Bexp -> Code
-compB = undefined -- TODO
 
--- compile :: Program -> Code
-compile = undefined -- TODO
+data Bexp =
+  TrueExp |         -- True constant
+  FalseExp |        -- False constant
+  NotExp Bexp |     -- Logical NOT
+  AndExp Bexp Bexp | -- Logical AND
+  EqExp Aexp Aexp |  -- Equality comparison
+  LeExp Aexp Aexp    -- Less than or equal to comparison
+  deriving Show
+
+data Stm =
+  Assign String Aexp |        -- Assignment statement
+  IfThenElse Bexp [Stm] [Stm] | -- Conditional statement
+  While Bexp [Stm]              -- Loop statement
+  deriving Show
+
+
+-- Auxiliary function to compile arithmetic expressions
+compA :: Aexp -> Code
+compA (IntExp n) = [Push n]
+compA (VarExp var) = [Fetch var]
+compA (AddExp a1 a2) = compA a1 ++ compA a2 ++ [Add]
+compA (MulExp a1 a2) = compA a1 ++ compA a2 ++ [Mult]
+compA (NegateExp a) = compA a ++ [Neg]
+
+-- Auxiliary function to compile boolean expressions
+compB :: Bexp -> Code
+compB TrueExp = [Tru]
+compB FalseExp = [Fals]
+compB (NotExp b) = compB b ++ [Neg]
+compB (AndExp b1 b2) = compB b1 ++ compB b2 ++ [And]
+compB (EqExp a1 a2) = compA a1 ++ compA a2 ++ [Equ]
+compB (LeExp a1 a2) = compA a1 ++ compA a2 ++ [Le]
+
+compile :: [Stm] -> Code
+compile = concatMap compileStm
+
+compileStm :: Stm -> Code
+compileStm (Assign var aexp) = compA aexp ++ [Store var]
+compileStm (IfThenElse bexp stm1 stm2) =
+  compB bexp ++ [Branch (compile stm1) (compile stm2)]
+compileStm (While bexp stm) = [Loop (compB bexp) (compile stm)]
 
 -- parse :: String -> Program
 parse = undefined -- TODO
 
-createEmptyStore = undefined -- TODO
-store2Str = undefined -- TODO
 
 -- To help you test your parser
 testParser :: String -> (String, String)
-testParser programCode = (stack2Str stack, store2Str store)
-  where (_,stack,store) = run(compile (parse programCode), createEmptyStack, createEmptyStore)
+testParser programCode = (stack2Str stack, state2Str state)
+  where (_,stack,state) = run(compile (parse programCode), createEmptyStack, createEmptyState)
 
 -- Examples:
 -- testParser "x := 5; x := x - 1;" == ("","x=4")
@@ -164,3 +207,57 @@ testParser programCode = (stack2Str stack, store2Str store)
 -- testParser "x := 42; if x <= 43 then x := 1; else x := 33; x := x+1; z := x+x;" == ("","x=2,z=4")
 -- testParser "x := 2; y := (x - 3)*(4 + 2*3); z := x +x*(2);" == ("","x=2,y=-10,z=6")
 -- testParser "i := 10; fact := 1; while (not(i == 1)) do (fact := fact * i; i := i - 1;);" == ("","fact=3628800,i=1")
+
+
+main :: IO ()
+main = do
+  -- Test for Aexp expressions
+  putStrLn "Test for Aexp expressions:"
+  putStrLn "IntExp 42:"
+  print $ compA (IntExp 42)
+
+  putStrLn "\nVarExp \"x\":"
+  print $ compA (VarExp "x")
+
+  putStrLn "\nAddExp (IntExp 3) (VarExp \"y\"):"
+  print $ compA (AddExp (IntExp 3) (VarExp "y"))
+
+  putStrLn "\nMulExp (VarExp \"a\") (VarExp \"b\"):"
+  print $ compA (MulExp (VarExp "a") (VarExp "b"))
+
+  putStrLn "\nNegateExp (IntExp 7):"
+  print $ compA (NegateExp (IntExp 7))
+
+  -- Test for Bexp expressions
+  putStrLn "\nTest for Bexp expressions:"
+  putStrLn "TrueExp:"
+  print $ compB TrueExp
+
+  putStrLn "\nFalseExp:"
+  print $ compB FalseExp
+
+  putStrLn "\nNotExp (TrueExp):"
+  print $ compB (NotExp TrueExp)
+
+  putStrLn "\nAndExp (TrueExp) (FalseExp):"
+  print $ compB (AndExp TrueExp FalseExp)
+
+  putStrLn "\nEqExp (VarExp \"x\") (IntExp 5):"
+  print $ compB (EqExp (VarExp "x") (IntExp 5))
+
+  putStrLn "\nLeExp (AddExp (IntExp 2) (VarExp \"y\")) (MulExp (IntExp 3) (IntExp 4)):"
+  print $ compB (LeExp (AddExp (IntExp 2) (VarExp "y")) (MulExp (IntExp 3) (IntExp 4)))
+
+  -- Test for Stm expressions
+  putStrLn "\nTest for Stm expressions:"
+  putStrLn "Assign \"x\" (IntExp 42):"
+  print $ compileStm (Assign "x" (IntExp 42))
+
+  putStrLn "\nIfThenElse (TrueExp) [Assign \"y\" (IntExp 10)] [Assign \"y\" (IntExp 20)]:"
+  print $ compileStm (IfThenElse TrueExp [Assign "y" (IntExp 10)] [Assign "y" (IntExp 20)])
+
+  putStrLn "\nWhile (LeExp (VarExp \"x\") (IntExp 3)) [Assign \"y\" (VarExp \"x\"), Assign \"x\" (AddExp (VarExp \"x\") (IntExp 1))]:"
+  print $ compileStm (While (LeExp (VarExp "x") (IntExp 3)) [Assign "y" (VarExp "x"), Assign "x" (AddExp (VarExp "x") (IntExp 1))])
+
+
+
