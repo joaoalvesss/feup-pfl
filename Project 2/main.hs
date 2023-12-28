@@ -3,6 +3,8 @@
 
 import Data.List (intercalate, sortOn)
 import Data.Maybe (fromMaybe)
+import Debug.Trace
+
 
 -- Part 1
 
@@ -13,9 +15,11 @@ data Inst =
   deriving Show
 type Code = [Inst]
 
+data Element = 
+  Int Integer | Boolean Bool deriving Show
 
-type Stack = [Integer]
-type State = [(String, Integer)]
+type Stack = [Element]
+type State = [(String, Element)]
 
 createEmptyStack :: Stack
 createEmptyStack = []
@@ -23,55 +27,69 @@ createEmptyStack = []
 createEmptyState :: State
 createEmptyState = []
 
--- VER ISTO
+
+instance Eq Element where
+  (Int x) == (Int y) = x == y
+  (Boolean x) == (Boolean y) = x == y
+  _ == _ = False
+
 stack2Str :: Stack -> String
-stack2Str stack = intercalate "," (map showBool stack)
+stack2Str stack = intercalate "," (map showElement stack)
   where
-    showBool 0 = "False"
-    showBool 1 = "True"
-    showBool n = show n
+    showElement (Int n) = show n
+    showElement (Boolean True) = "True"
+    showElement (Boolean False) = "False"
 
 state2Str :: State -> String
-state2Str state = intercalate "," [var ++ "=" ++ showVal val | (var, val) <- sortOn fst state]
+state2Str state = intercalate "," [var ++ "=" ++ showElement val | (var, val) <- sortOn fst state]
   where
-    showVal 0 = "False"
-    showVal 1 = "True"
-    showVal n = show n
+    showElement (Int n) = show n
+    showElement (Boolean True) = "True"
+    showElement (Boolean False) = "False"
 
 run :: (Code, Stack, State) -> (Code, Stack, State)
-run ([], stack, state) = ([], stack, state) -- If code is empty, return the final state
+run ([], stack, state) = ([], stack, state)
 run (instruction:rest, stack, state) = case instruction of
-     Push n -> run (rest, n : stack, state)
-     Add -> run (rest, binaryOperation (+) stack, state)
-     Mult -> run (rest, binaryOperation (*) stack, state)
-     Sub -> run (rest, binaryOperation (-) stack, state)
-     Tru -> run (rest, 1 : stack, state)
-     Fals -> run (rest, 0 : stack, state)
-     Equ -> run (rest, comparisonOperation (==) stack, state)
-     Le -> run (rest, comparisonOperation (<=) stack, state)
-     And -> run (rest, binaryOperation (\x y -> if x /= 0 && y /= 0 then 1 else 0) stack, state)
-     Neg -> run (rest, unaryOperation negate stack, state)
+     Push n -> run (rest, Int n : stack, state)
+     Add -> run (rest, binaryOperation (\x y -> Int (toInt x + toInt y)) stack, state)
+     Mult -> run (rest, binaryOperation (\x y -> Int (toInt x * toInt y)) stack, state)
+     Sub -> run (rest, binaryOperation (\x y -> Int (toInt x - toInt y)) stack, state)
+     Tru -> run (rest, Boolean True : stack, state)
+     Fals -> run (rest, Boolean False : stack, state)
+     Equ -> run (rest, comparisonOperation (\x y -> Boolean (x == y)) stack, state)
+     Le -> run (rest, comparisonOperation (\x y -> Boolean (toInt x <= toInt y)) stack, state)
+     And -> run (rest, binaryOperation (\x y -> if toInt x /= 0 && toInt y /= 0 then Boolean True else Boolean False) stack, state)
+     Neg -> run (rest, unaryOperation (\x -> negateElement x) stack, state)
      Fetch var -> run (rest, stateLookup var stack state : stack, state)
      Store var -> run (rest, stackTail stack, stateUpdate var (stackHead stack) state)
      Noop -> run (rest, stack, state)
-     Branch c1 c2 -> run (if stackHead stack /= 0 then c1 else c2, stackTail stack, state)
-     Loop c1 c2 -> run (c1 ++ [Branch c2 c1], stack, state)
+     Branch c1 c2 -> run (if toInt (stackHead stack) /= 0 then c1 else c2, stackTail stack, state)
+     Loop c1 c2 -> run ((c1 ++ [Branch (c2 ++ [Loop c1 c2]) [Noop]]) ++ rest, stack, state)
+     where
+     toInt (Int n) = n
+     toInt _ = error "Invalid conversion to integer"
+
+
+-- Helper function to handle comparisonOperation
+comparisonOperation :: (Element -> Element -> Element) -> Stack -> Stack
+comparisonOperation op (x:y:xs) = op x y : xs
+comparisonOperation _ stack = stack
 
 
 -- Helper functions
-binaryOperation :: (Integer -> Integer -> Integer) -> Stack -> Stack
+binaryOperation :: (Element -> Element -> Element) -> Stack -> Stack
 binaryOperation op (x:y:xs) = op x y : xs
 binaryOperation _ stack = stack
 
-unaryOperation :: (Integer -> Integer) -> Stack -> Stack
+unaryOperation :: (Element -> Element) -> Stack -> Stack
 unaryOperation op (x:xs) = op x : xs
 unaryOperation _ stack = stack
 
-comparisonOperation :: (Integer -> Integer -> Bool) -> Stack -> Stack
-comparisonOperation op (x:y:xs) = if op x y then 1 : xs else 0 : xs
-comparisonOperation _ stack = stack
+negateElement :: Element -> Element
+negateElement (Int n) = Int (negate n)
+negateElement (Boolean b) = Boolean (not b)
 
-stackHead :: Stack -> Integer
+stackHead :: Stack -> Element
 stackHead (x:_) = x
 stackHead _ = error "Empty stack"
 
@@ -79,11 +97,13 @@ stackTail :: Stack -> Stack
 stackTail (_:xs) = xs
 stackTail _ = error "Empty stack"
 
-stateLookup :: String -> Stack -> State -> Integer
-stateLookup var stack state = fromMaybe (error "Variable not found") (lookup var state)
+stateLookup :: String -> Stack -> State -> Element
+stateLookup var stack state =
+  fromMaybe (error "Variable not found") (lookup var state)
 
-stateUpdate :: String -> Integer -> State -> State
-stateUpdate var val state = (var, val) : filter (\(v, _) -> v /= var) state
+stateUpdate :: String -> Element -> State -> State
+stateUpdate var val state =
+  (var, val) : filter (\(v, _) -> v /= var) state
 
 -- To help you test your assembler
 testAssembler :: Code -> (String, String)
@@ -106,6 +126,7 @@ testAssembler code = (stack2Str stack, state2Str state)
 -- If you test:
 -- testAssembler [Tru,Tru,Store "y", Fetch "x",Tru]
 -- You should get an exception with the string: "Run-time error"
+
 
 -- Part 2
 
