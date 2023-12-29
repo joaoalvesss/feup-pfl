@@ -25,7 +25,10 @@ data Token
     | WhileTok     -- while
     | DoTok          -- do
     | EqualityTok   -- ==
+    | InequalityTok -- <=
+    | CompareTok    -- =  
     | NotTok        -- not
+    | AndTok        -- and
     | TrueTok   -- True
     | FalseTok  -- False
     deriving Show
@@ -36,6 +39,7 @@ data Bexp
   | NotExp Bexp       -- Logical NOT
   | AndExp Bexp Bexp  -- Logical AND
   | EqExp Aexp Aexp   -- Equality comparison
+  | EqBoolExp Bexp Bexp -- Bool Equality comparison
   | LeExp Aexp Aexp   -- Less than or equal to comparison
   deriving Show
 

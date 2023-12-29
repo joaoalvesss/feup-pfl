@@ -11,9 +11,11 @@ lexer ('+' : restStr) = PlusTok : lexer restStr
 lexer ('*' : restStr) = TimesTok : lexer restStr
 lexer ('(' : restStr) = OpenTok : lexer restStr
 lexer (')' : restStr) = CloseTok : lexer restStr
+lexer ('=':'=' : restStr) = EqualityTok : lexer restStr
 lexer (':':'=' : restStr) = AssignmentTok : lexer restStr
 lexer (';' : restStr) = SemiColonTok : lexer restStr
-lexer ('=' : restStr) = error ("------------- Try ':=' instead of '=' -------------")
+lexer ('=' : restStr) = CompareTok : lexer restStr
+lexer ('<':'=' : restStr) = InequalityTok : lexer restStr
 lexer str@(chr : restStr)
     | isSpace chr = lexer restStr
 lexer str@(chr : _)
@@ -35,6 +37,8 @@ lexer str@(chr : restStr)
                 "do" -> DoTok : lexer restStr'
                 "True" -> TrueTok : lexer restStr'
                 "False" -> FalseTok : lexer restStr'
+                "and" -> AndTok : lexer restStr'
+                "not" -> NotTok : lexer restStr'
                 _ -> VarTok varName : lexer restStr'
     where
         isAlphaNumOrUnderscore c = isAlphaNum c || c == '_'

@@ -4,6 +4,7 @@ import Data.Char (isDigit, isSpace, digitToInt)
 import DataModule
 import AuxLexer
 import ParserAexp 
+import ParserBexp
 
 parseStm :: [Token] -> Stm
 parseStm (VarTok var : AssignmentTok : restTokens) =
