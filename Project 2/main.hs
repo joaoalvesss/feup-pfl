@@ -4,7 +4,8 @@
 import Data.List (intercalate, sortOn)
 import Data.Maybe (fromMaybe)
 import Debug.Trace
-
+import DataModule
+import Parser
 
 -- Part 1
 
@@ -136,30 +137,7 @@ testAssembler code = (stack2Str stack, state2Str state)
 
 -- TODO: Define the types Aexp, Bexp, Stm and Program
 
-data Aexp =
-  IntExp Integer |  -- Integer constant
-  VarExp String |   -- Variable reference
-  AddExp Aexp Aexp | -- Addition expression
-  MulExp Aexp Aexp |   -- Multiplication expression
-  NegateExp Aexp  -- Negate a number
-  deriving Show
-
-
-data Bexp =
-  TrueExp |         -- True constant
-  FalseExp |        -- False constant
-  NotExp Bexp |     -- Logical NOT
-  AndExp Bexp Bexp | -- Logical AND
-  EqExp Aexp Aexp |  -- Equality comparison
-  LeExp Aexp Aexp    -- Less than or equal to comparison
-  deriving Show
-
-data Stm =
-  Assign String Aexp |        -- Assignment statement
-  IfThenElse Bexp [Stm] [Stm] | -- Conditional statement
-  While Bexp [Stm]              -- Loop statement
-  deriving Show
-
+-- Ver DataModule
 
 -- Auxiliary function to compile arithmetic expressions
 compA :: Aexp -> Code
@@ -187,16 +165,36 @@ compileStm (IfThenElse bexp stm1 stm2) =
   compB bexp ++ [Branch (compile stm1) (compile stm2)]
 compileStm (While bexp stm) = [Loop (compB bexp) (compile stm)]
 
-parse :: String -> [Stm]
-parse = undefined -- TODO
+
+
+-- Ver Parser
+
+
+runTest::String -> (String,String)
+runTest input = (stack2Str stack, state2Str state)
+     where
+      code = compileStm(parse input)   
+      (_,stack,state) = run(code, createEmptyStack, createEmptyState)
+
+parserTest::String -> Stm
+parserTest input = parse input
+
+
+--Compilacao dps do parsing
+compileTest::String -> Code
+compileTest input = compileStm(parse input)
+
+
+--parse :: String -> [Stm]
+--parse = undefined -- TODO
 
 createEmptyStore = undefined -- TODO
 store2Str = undefined -- TODO
 
 -- To help you test your parser
-testParser :: String -> (String, String)
-testParser programCode = (stack2Str stack, store2Str store)
-  where (_,stack,store) = run(compile (parse programCode), createEmptyStack, createEmptyStore)
+--testParser :: String -> (String, String)
+--testParser programCode = (stack2Str stack, store2Str store)
+--  where (_,stack,store) = run(compile (parse programCode), createEmptyStack, createEmptyStore)
 
 -- Examples:
 -- testParser "x := 5; x := x - 1;" == ("","x=4")
