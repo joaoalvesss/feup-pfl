@@ -155,6 +155,7 @@ compB (NotExp b) = compB b ++ [Neg]
 compB (AndExp b1 b2) = compB b1 ++ compB b2 ++ [And]
 compB (EqExp a1 a2) = compA a1 ++ compA a2 ++ [Equ]
 compB (LeExp a1 a2) = compA a1 ++ compA a2 ++ [Le]
+compB (EqBoolExp a1 a2) = compA a1 ++ compA a2 ++ [Equ]
 
 compile :: [Stm] -> Code
 compile = concatMap compileStm
