@@ -1,5 +1,3 @@
--- In ParserBexp.hs
-
 module ParserBexp where
 
 import DataModule
@@ -36,10 +34,22 @@ parseNegAndLessAndEq :: [Token] -> Maybe (Bexp, [Token])
 parseNegAndLessAndEq tokens =
     case parseLessOrEqOrTrueOrFalseOrParentOrArith tokens of
         Just (expr1, (NotTok : restTokens1)) ->
-            Just (NotExp expr1, restTokens1)
+            case parseNegAndLessAndEq restTokens1 of
+                Just (expr2, restTokens2) ->
+                    Just (NotExp expr2, restTokens2)
+                Nothing ->
+                    error "Failed to parse negation after 'not'"
         result -> result
 
+
+-- Maybe bug on NOT 
 parseLessOrEqOrTrueOrFalseOrParentOrArith :: [Token] -> Maybe (Bexp, [Token])
+parseLessOrEqOrTrueOrFalseOrParentOrArith (NotTok : restTokens) =
+    case parseNegAndLessAndEq restTokens of
+        Just (expr1, restTokens1) ->
+            Just (NotExp expr1, restTokens1)
+        Nothing ->
+            error "Failed to parse negation after 'not'"
 parseLessOrEqOrTrueOrFalseOrParentOrArith (OpenTok : restTokens) =
     case parseAndBoolEq restTokens of
         Just (expr, (CloseTok : restTokens1)) -> Just (expr, restTokens1)

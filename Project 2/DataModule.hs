@@ -31,7 +31,7 @@ data Token
     | AndTok        -- and
     | TrueTok   -- True
     | FalseTok  -- False
-    deriving Show
+    deriving (Show, Eq)
 
 data Bexp 
   = TrueExp           -- True constant
