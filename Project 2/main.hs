@@ -136,16 +136,58 @@ testAssembler code = (stack2Str stack, state2Str state)
 
 -- TODO: Define the types Aexp, Bexp, Stm and Program
 
--- compA :: Aexp -> Code
-compA = undefined -- TODO
+data Aexp =
+  IntExp Integer |  -- Integer constant
+  VarExp String |   -- Variable reference
+  AddExp Aexp Aexp | -- Addition expression
+  MulExp Aexp Aexp |   -- Multiplication expression
+  NegateExp Aexp  -- Negate a number
+  deriving Show
 
--- compB :: Bexp -> Code
-compB = undefined -- TODO
 
--- compile :: Program -> Code
-compile = undefined -- TODO
+data Bexp =
+  TrueExp |         -- True constant
+  FalseExp |        -- False constant
+  NotExp Bexp |     -- Logical NOT
+  AndExp Bexp Bexp | -- Logical AND
+  EqExp Aexp Aexp |  -- Equality comparison
+  LeExp Aexp Aexp    -- Less than or equal to comparison
+  deriving Show
 
--- parse :: String -> Program
+data Stm =
+  Assign String Aexp |        -- Assignment statement
+  IfThenElse Bexp [Stm] [Stm] | -- Conditional statement
+  While Bexp [Stm]              -- Loop statement
+  deriving Show
+
+
+-- Auxiliary function to compile arithmetic expressions
+compA :: Aexp -> Code
+compA (IntExp n) = [Push n]
+compA (VarExp var) = [Fetch var]
+compA (AddExp a1 a2) = compA a1 ++ compA a2 ++ [Add]
+compA (MulExp a1 a2) = compA a1 ++ compA a2 ++ [Mult]
+compA (NegateExp a) = compA a ++ [Neg]
+
+-- Auxiliary function to compile boolean expressions
+compB :: Bexp -> Code
+compB TrueExp = [Tru]
+compB FalseExp = [Fals]
+compB (NotExp b) = compB b ++ [Neg]
+compB (AndExp b1 b2) = compB b1 ++ compB b2 ++ [And]
+compB (EqExp a1 a2) = compA a1 ++ compA a2 ++ [Equ]
+compB (LeExp a1 a2) = compA a1 ++ compA a2 ++ [Le]
+
+compile :: [Stm] -> Code
+compile = concatMap compileStm
+
+compileStm :: Stm -> Code
+compileStm (Assign var aexp) = compA aexp ++ [Store var]
+compileStm (IfThenElse bexp stm1 stm2) =
+  compB bexp ++ [Branch (compile stm1) (compile stm2)]
+compileStm (While bexp stm) = [Loop (compB bexp) (compile stm)]
+
+parse :: String -> [Stm]
 parse = undefined -- TODO
 
 createEmptyStore = undefined -- TODO
