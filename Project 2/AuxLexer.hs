@@ -1,8 +1,8 @@
-module AuxLexer where
+-- module AuxLexer where
 
-import DataModule
 import Data.Char (isDigit, isSpace, digitToInt, isAlpha, isAlphaNum)
-
+import DataModule
+import Stack
 
 
 lexer :: String -> [Token]
@@ -43,3 +43,57 @@ lexer str@(chr : restStr)
     where
         isAlphaNumOrUnderscore c = isAlphaNum c || c == '_'
 lexer (_ : restString) = error ("unexpected character: ")
+
+
+
+parent :: String -> Bool
+parent str = parentAux str empty
+
+parentAux :: String -> Stack Char -> Bool
+parentAux [] stk = isEmpty stk
+parentAux (x:xs) stk
+    | x == '(' = parentAux xs (push '(' stk)
+    | x == ')' = not (isEmpty stk) && top stk == '(' && parentAux xs (pop stk)
+    | x == '[' = parentAux xs (push '[' stk)
+    | x == ']' = not (isEmpty stk) && top stk == '[' && parentAux xs (pop stk) 
+    | otherwise = parentAux xs stk 
+
+
+
+insertEndWhileToken :: [Token] -> Stack Token -> [Token]
+insertEndWhileToken [] _ = []
+insertEndWhileToken (token : restTokens) stack
+    | token == OpenTok = token : insertEndWhileToken restTokens (push token stack)
+    | token == CloseTok =
+        if isEmpty (pop stack)
+            then token: EndWhileTok : restTokens
+            else token : insertEndWhileToken restTokens (pop stack)
+    | otherwise = token : insertEndWhileToken restTokens stack
+
+
+test:: String -> [Token]
+test input = insertEndWhileToken (lexer input) empty
+
+
+{-
+
+insertEndWhileToken :: [Token] -> Stack Token -> ([Token], [Token])
+insertEndWhileToken [] _ = ([], [])
+insertEndWhileToken (token : restTokens) stack
+    | token == OpenTok = 
+        let (processed, remaining) = insertEndWhileToken restTokens (push token stack)
+        in (token : processed, remaining)
+    | token == CloseTok =
+        if isEmpty stack
+            then ([token, EndWhileTok], restTokens)
+        else let (processed, remaining) = insertEndWhileToken restTokens (pop stack)
+            in (token : processed, remaining)
+    | otherwise = 
+        let (processed, remaining) = insertEndWhileToken restTokens stack
+        in (token : processed, remaining)
+
+test :: String -> ([Token], [Token])
+test input = insertEndWhileToken (lexer input) empty
+
+-}
+

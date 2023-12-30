@@ -31,7 +31,8 @@ data Token
     | AndTok        -- and
     | TrueTok   -- True
     | FalseTok  -- False
-    deriving Show
+    | EndWhileTok -- End While Operation
+    deriving (Show, Eq)
 
 data Bexp 
   = TrueExp           -- True constant
@@ -48,6 +49,9 @@ data Stm
   | IfThenElse Bexp [Stm] [Stm]  -- Conditional statement
   | While Bexp [Stm]              -- Loop statement
   deriving Show
+
+
+
 
 
 
