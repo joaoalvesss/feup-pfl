@@ -29,7 +29,7 @@ parseStms tokens =
 
 
 parse :: String -> [Stm]
-parse input = parseStms (lexer input)
+parse input = parseStms (processTokens(lexer input))
 
 
 isValidStm :: Stm -> Bool

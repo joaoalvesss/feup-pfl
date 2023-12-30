@@ -1,4 +1,4 @@
--- module AuxLexer where
+module AuxLexer where
 
 import Data.Char (isDigit, isSpace, digitToInt, isAlpha, isAlphaNum)
 import DataModule
@@ -44,56 +44,57 @@ lexer str@(chr : restStr)
         isAlphaNumOrUnderscore c = isAlphaNum c || c == '_'
 lexer (_ : restString) = error ("unexpected character: ")
 
-
-
-parent :: String -> Bool
-parent str = parentAux str empty
-
-parentAux :: String -> Stack Char -> Bool
-parentAux [] stk = isEmpty stk
-parentAux (x:xs) stk
-    | x == '(' = parentAux xs (push '(' stk)
-    | x == ')' = not (isEmpty stk) && top stk == '(' && parentAux xs (pop stk)
-    | x == '[' = parentAux xs (push '[' stk)
-    | x == ']' = not (isEmpty stk) && top stk == '[' && parentAux xs (pop stk) 
-    | otherwise = parentAux xs stk 
-
-
-
 insertEndWhileToken :: [Token] -> Stack Token -> [Token]
 insertEndWhileToken [] _ = []
 insertEndWhileToken (token : restTokens) stack
-    | token == OpenTok = token : insertEndWhileToken restTokens (push token stack)
-    | token == CloseTok =
-        if isEmpty (pop stack)
-            then token: EndWhileTok : restTokens
-            else token : insertEndWhileToken restTokens (pop stack)
+    | token == OpenTok = 
+        token : insertEndWhileToken restTokens (push token stack)
+    | token == SemiColonTok =    
+        if isEmpty stack
+            then EndWhileTok : restTokens
+            else token : insertEndWhileToken restTokens stack
+    | token == CloseTok =    
+        token : insertEndWhileToken restTokens (pop stack)
     | otherwise = token : insertEndWhileToken restTokens stack
 
-
-test:: String -> [Token]
-test input = insertEndWhileToken (lexer input) empty
-
-
-{-
-
-insertEndWhileToken :: [Token] -> Stack Token -> ([Token], [Token])
-insertEndWhileToken [] _ = ([], [])
-insertEndWhileToken (token : restTokens) stack
+insertThenToken :: [Token] -> Stack Token -> [Token]
+insertThenToken [] _ = []   
+insertThenToken (token : restTokens) stack
     | token == OpenTok = 
-        let (processed, remaining) = insertEndWhileToken restTokens (push token stack)
-        in (token : processed, remaining)
-    | token == CloseTok =
+        token : insertThenToken restTokens (push token stack)
+    | token == CloseTok =    
+        token : insertThenToken restTokens (pop stack) 
+    | token == SemiColonTok =    
         if isEmpty stack
-            then ([token, EndWhileTok], restTokens)
-        else let (processed, remaining) = insertEndWhileToken restTokens (pop stack)
-            in (token : processed, remaining)
-    | otherwise = 
-        let (processed, remaining) = insertEndWhileToken restTokens stack
-        in (token : processed, remaining)
+            then EndThenTok : restTokens
+            else token : insertThenToken restTokens stack 
+    | otherwise = token : insertThenToken restTokens stack        
+            
+insertElseToken :: [Token] -> Stack Token -> [Token]
+insertElseToken [] _ = []   
+insertElseToken (token : restTokens) stack
+    | token == OpenTok = 
+        token : insertElseToken restTokens (push token stack)
+    | token == CloseTok =    
+        token : insertElseToken restTokens (pop stack) 
+    | token == SemiColonTok =    
+        if isEmpty stack
+            then EndElseTok : restTokens
+            else token : insertElseToken restTokens stack 
+    | otherwise = token : insertElseToken restTokens stack    
 
-test :: String -> ([Token], [Token])
-test input = insertEndWhileToken (lexer input) empty
+processTokens :: [Token] -> [Token]
+processTokens (token : restOfTokens) 
+    | token == DoTok =
+        token : processTokens (insertEndWhileToken restOfTokens empty)
+    | token == ThenTok =
+        token : processTokens (insertThenToken restOfTokens empty)
+    | token == ElseTok =
+        token : processTokens (insertElseToken restOfTokens empty)
+    | otherwise =
+        token : processTokens restOfTokens
+processTokens [] = []   
 
--}
+test :: String -> [Token]
+test input = processTokens (lexer input)
 

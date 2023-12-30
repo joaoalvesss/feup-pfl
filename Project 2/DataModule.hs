@@ -32,6 +32,8 @@ data Token
     | TrueTok   -- True
     | FalseTok  -- False
     | EndWhileTok -- End While Operation
+    | EndElseTok -- End Else Operation
+    | EndThenTok -- End Then Operation
     deriving (Show, Eq)
 
 data Bexp 
