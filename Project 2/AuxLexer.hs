@@ -51,7 +51,7 @@ insertEndWhileToken (token : restTokens) stack
         token : insertEndWhileToken restTokens (push token stack)
     | token == SemiColonTok =    
         if isEmpty stack
-            then EndWhileTok : restTokens
+            then token : EndWhileTok : restTokens
             else token : insertEndWhileToken restTokens stack
     | token == CloseTok =    
         token : insertEndWhileToken restTokens (pop stack)
