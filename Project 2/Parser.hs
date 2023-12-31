@@ -1,6 +1,6 @@
 module Parser where
 
-import Data.Char (isDigit, isSpace, digitToInt)
+import Data.Char (isDigit)
 import DataModule
 import AuxLexer
 import ParserAexp 
@@ -8,34 +8,33 @@ import ParserBexp
 
 -- In Parser.hs
 
-parseStm :: [Token] -> Stm
+parseStm :: [Token] -> (Stm, [Token])
 parseStm (VarTok var : AssignmentTok : restTokens) =
     case parseSumOrProdOrIntOrPar restTokens of
         Just (aexp, SemiColonTok : remainingTokens) ->
-            Assign var aexp
+            (Assign var aexp, remainingTokens)
         _ -> error "Failed to parse assignment statement"
 parseStm (WhileTok : restTokens) =
     case parseBexpBetweenBrackets restTokens of
         Just (condition, DoTok : whileBody) ->
-            let stms = parseStms untilEndWhileTok whileBody
-            in While condition stms
+            let (stms, remainingTokens) = parseStms untilEndWhileTok whileBody
+            in (While condition stms, remainingTokens)
         _ -> error "Failed to parse while statement"       
 parseStm _ = error "Invalid input for statement"
 
-parseStms :: ([Token] -> Bool) -> [Token] -> [Stm]
-parseStms _ [] = []
+parseStms :: ([Token] -> Bool) -> [Token] -> ([Stm], [Token])
+parseStms _ [] = ([], [])
 parseStms stopCondition tokens
-    | stopCondition tokens = []
+    | stopCondition tokens = ([], tokens)
     | otherwise =
         case parseStm tokens of
-            stm | isValidStm stm ->
-                let nextStms = parseStms stopCondition (remainingTokens stm)
-                in stm : nextStms
-            _ ->
-                error $ "Unexpected tokens after parsing: " ++ show tokens
-
-                 
-
+            (stm, remainingTokens) ->
+                if isValidStm stm
+                    then
+                        let (nextStms, restTokens) = parseStms stopCondition remainingTokens
+                        in (stm : nextStms, restTokens)
+                    else
+                        error $ "Unexpected tokens after parsing: " ++ show tokens
 
 remainingTokens :: Stm -> [Token]
 remainingTokens (Assign _ _) = []
@@ -52,9 +51,13 @@ parseBexpBetweenBrackets (OpenTok : restTokens) =
         _ -> Nothing
 parseBexpBetweenBrackets _ = Nothing
 
-
 isValidStm :: Stm -> Bool
-isValidStm stm = True
+isValidStm _ = True
 
 parse :: String -> [Stm]
-parse input = parseStms untilEndWhileTok (lexer input)
+parse input =
+    let (stms, remainingTokens) = parseStms (\tokens -> tokens == [EndStatementTok]) (lexer input)
+    in if null remainingTokens
+        then stms
+        else error $ "Unexpected tokens after parsing: " ++ show remainingTokens
+

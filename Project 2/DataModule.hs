@@ -34,6 +34,7 @@ data Token
     | EndWhileTok -- End While Operation
     | EndElseTok -- End Else Operation
     | EndThenTok -- End Then Operation
+    | EndStatementTok
     deriving (Show, Eq)
 
 data Bexp 

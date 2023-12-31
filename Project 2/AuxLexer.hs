@@ -84,17 +84,21 @@ insertElseToken (token : restTokens) stack
     | otherwise = token : insertElseToken restTokens stack    
 
 processTokens :: [Token] -> [Token]
-processTokens (token : restOfTokens) 
-    | token == DoTok =
-        token : processTokens (insertEndWhileToken restOfTokens empty)
-    | token == ThenTok =
-        token : processTokens (insertThenToken restOfTokens empty)
-    | token == ElseTok =
-        token : processTokens (insertElseToken restOfTokens empty)
-    | otherwise =
-        token : processTokens restOfTokens
-processTokens [] = []   
+processTokens tokens = processTokensWithBlockDepth tokens 0
 
-test :: String -> [Token]
-test input = processTokens (lexer input)
+processTokensWithBlockDepth :: [Token] -> Int -> [Token]
+processTokensWithBlockDepth (token : restOfTokens) blockDepth
+    | token == DoTok || token == ThenTok || token == ElseTok =
+        token : processTokensWithBlockDepth restOfTokens (blockDepth + 1)
+    | token == SemiColonTok =
+        if blockDepth > 0
+            then token : processTokensWithBlockDepth restOfTokens blockDepth
+            else token : EndStatementTok : processTokensWithBlockDepth restOfTokens blockDepth
+    | token == EndWhileTok || token == EndThenTok || token == EndElseTok =
+        token : processTokensWithBlockDepth restOfTokens (max 0 (blockDepth - 1))
+    | otherwise =
+        token : processTokensWithBlockDepth restOfTokens blockDepth
+
+processTokensWithBlockDepth [] _ = []
+
 
