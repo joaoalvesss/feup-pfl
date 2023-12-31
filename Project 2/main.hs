@@ -3,7 +3,6 @@
 
 import Data.List (intercalate, sortOn)
 import Data.Maybe (fromMaybe)
-import Debug.Trace
 import DataModule
 import Parser
 
@@ -155,7 +154,7 @@ compB (NotExp b) = compB b ++ [Neg]
 compB (AndExp b1 b2) = compB b1 ++ compB b2 ++ [And]
 compB (EqExp a1 a2) = compA a1 ++ compA a2 ++ [Equ]
 compB (LeExp a1 a2) = compA a1 ++ compA a2 ++ [Le]
-compB (EqBoolExp a1 a2) = compA a1 ++ compA a2 ++ [Equ]
+compB (EqBoolExp a1 a2) = compB a1 ++ compB a2 ++ [Equ]
 
 compile :: [Stm] -> Code
 compile = concatMap compileStm
@@ -167,28 +166,22 @@ compileStm (IfThenElse bexp stm1 stm2) =
 compileStm (While bexp stm) = [Loop (compB bexp) (compile stm)]
 
 
-
 -- Ver Parser
-
-
-runTest::String -> (String,String)
+runTest :: String -> (String, String)
 runTest input = (stack2Str stack, state2Str state)
-     where
-      code = compileStm(parse input)   
-      (_,stack,state) = run(code, createEmptyStack, createEmptyState)
+  where
+    code = compileStm (parse input)
+    (_, stack, state) = run (code, createEmptyStack, createEmptyState)
 
-parserTest::String -> Stm
+parserTest :: String -> Stm
 parserTest input = parse input
 
-
---Compilacao dps do parsing
-compileTest::String -> Code
-compileTest input = compileStm(parse input)
+compileTest :: String -> Code
+compileTest input = compileStm (parse input)
 
 
 --parse :: String -> [Stm]
 --parse = undefined -- TODO
-
 createEmptyStore = undefined -- TODO
 store2Str = undefined -- TODO
 

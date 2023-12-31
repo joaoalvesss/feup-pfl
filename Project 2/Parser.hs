@@ -54,10 +54,11 @@ parseBexpBetweenBrackets _ = Nothing
 isValidStm :: Stm -> Bool
 isValidStm _ = True
 
-parse :: String -> [Stm]
+parse :: String -> Stm
 parse input =
-    let (stms, remainingTokens) = parseStms (\tokens -> tokens == [EndStatementTok]) (lexer input)
+    let (stm, remainingTokens) = parseStm (lexer input)
     in if null remainingTokens
-        then stms
+        then stm
         else error $ "Unexpected tokens after parsing: " ++ show remainingTokens
+
 
