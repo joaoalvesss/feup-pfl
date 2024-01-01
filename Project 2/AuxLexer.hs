@@ -8,6 +8,7 @@ import Stack
 lexer :: String -> [Token]
 lexer [] = []
 lexer ('+' : restStr) = PlusTok : lexer restStr
+lexer ('-' : restStr) = MinusTok : lexer restStr
 lexer ('*' : restStr) = TimesTok : lexer restStr
 lexer ('(' : restStr) = OpenTok : lexer restStr
 lexer (')' : restStr) = CloseTok : lexer restStr
@@ -46,6 +47,9 @@ lexer (_ : restString) = error ("unexpected character: ")
 
 insertEndWhileToken :: [Token] -> Stack Token -> [Token]
 insertEndWhileToken [] _ = []
+insertEndWhileToken (DoTok : OpenTok : restOfTokens) stack = insertEndWhileToken restOfTokens (push OpenTok stack)
+insertEndWhileToken (DoTok : restOfTokens) stack = insertEndWhileToken restOfTokens stack
+insertEndWhileToken (SemiColonTok : CloseTok : SemiColonTok : restOfTokens) _ = SemiColonTok : EndWhileTok : restOfTokens
 insertEndWhileToken (token : restTokens) stack
     | token == OpenTok = 
         token : insertEndWhileToken restTokens (push token stack)
@@ -58,7 +62,7 @@ insertEndWhileToken (token : restTokens) stack
     | otherwise = token : insertEndWhileToken restTokens stack
 
 insertThenToken :: [Token] -> Stack Token -> [Token]
-insertThenToken [] _ = []   
+insertThenToken [] _ = [EndThenTok]   
 insertThenToken (token : restTokens) stack
     | token == OpenTok = 
         token : insertThenToken restTokens (push token stack)
@@ -71,7 +75,7 @@ insertThenToken (token : restTokens) stack
     | otherwise = token : insertThenToken restTokens stack        
             
 insertElseToken :: [Token] -> Stack Token -> [Token]
-insertElseToken [] _ = []   
+insertElseToken [] _ = [EndElseTok]   
 insertElseToken (token : restTokens) stack
     | token == OpenTok = 
         token : insertElseToken restTokens (push token stack)
@@ -84,9 +88,10 @@ insertElseToken (token : restTokens) stack
     | otherwise = token : insertElseToken restTokens stack    
 
 processTokens :: [Token] -> [Token]
+processTokens (DoTok : OpenTok : restOfTokens) = DoTok : processTokens (insertEndWhileToken (DoTok : OpenTok : restOfTokens) empty)  
 processTokens (token : restOfTokens) 
     | token == DoTok =
-        token : processTokens (insertEndWhileToken restOfTokens empty)
+        token : processTokens (insertEndWhileToken (token:restOfTokens) empty)
     | token == ThenTok =
         token : processTokens (insertThenToken restOfTokens empty)
     | token == ElseTok =
@@ -95,6 +100,5 @@ processTokens (token : restOfTokens)
         token : processTokens restOfTokens
 processTokens [] = []   
 
---test :: String -> [Token]
---test input = processTokens (lexer input)
+
 

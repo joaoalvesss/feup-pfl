@@ -1,4 +1,4 @@
---module Parser where
+module Parser where
 
 import Data.Char (isDigit, isSpace, digitToInt)
 import DataModule
@@ -17,14 +17,14 @@ parseStm (IfTok : restTokens) =
     undefined
 parseStm (WhileTok : restTokens) =
     case parseBexpBetweenBrackets restTokens of
-        Just (condition, DoTok : whileBody) ->
-            let (stms, remainingTokens) = parseStmsUntilEndWhile whileBody
-            in case remainingTokens of
-                (EndWhileTok : endTokens) -> (While condition stms, endTokens)
-                _ -> error "Expected EndWhileTok after While statement"
+        Just (condition, DoTok : restOfTokens) ->
+            case restOfTokens of
+                OpenTok : _ -> parseDoWithOpenParen condition restOfTokens
+                _ -> parseDoWithoutOpenParen condition restOfTokens             
         _ -> error "Failed to parse while statement"
-parseStm [] = error "Unexpected end of input"
-parseStm _ = error "Invalid input for statement" 
+
+parseStm [] = (IgnoreStm, [])
+parseStm tokens = error "Invalid input for statement" 
 
 parseStmsUntilEndWhile :: [Token] -> ([Stm], [Token])
 parseStmsUntilEndWhile tokens =
@@ -32,7 +32,14 @@ parseStmsUntilEndWhile tokens =
 
 isEndToken :: [Token] -> Bool
 isEndToken (EndWhileTok : _) = True
+isEndToken (CloseTok : remaining) = isSemiColonEndWhile remaining
 isEndToken _ = False
+
+isSemiColonEndWhile :: [Token] -> Bool
+isSemiColonEndWhile (CloseTok : EndWhileTok : _) = True
+isSemiColonEndWhile (EndWhileTok : _) = True
+isSemiColonEndWhile _ = False
+
 
 parseStms :: ([Token] -> Bool) -> [Token] -> ([Stm], [Token])
 parseStms _ [] = ([], [])
@@ -55,6 +62,33 @@ parse input =
             else error $ "2 Unexpected tokens after parsing: " ++ show remainingTokens
 
 
+
+parseDoWithoutOpenParen :: Bexp -> [Token] -> (Stm, [Token])
+parseDoWithoutOpenParen condition whileBody =
+    let (stms, remainingTokens) = parseStmsUntilEndWhile whileBody
+    in case remainingTokens of
+        (EndWhileTok : endTokens) -> (While condition stms, endTokens)
+        _ -> error "Expected EndWhileTok after While statement"
+
+
+parseDoWithOpenParen :: Bexp -> [Token] -> (Stm, [Token])
+parseDoWithOpenParen condition restTokens =
+    let (stms, remainingTokens) = parseStmsUntilEndWhile restTokens
+    in case remainingTokens of
+        (EndWhileTok : endTokens) -> (While condition stms, endTokens)
+        _ -> error "Expected closing parenthesis after While statement"
+
+    
+
+parseStmsUntilCloseParen :: [Token] -> ([Stm], [Token])
+parseStmsUntilCloseParen tokens =
+    parseStms (\toks -> isCloseParenToken toks || null toks) tokens
+
+isCloseParenToken :: [Token] -> Bool
+isCloseParenToken (CloseTok : _) = True
+isCloseParenToken _ = False
+
+
 parseBexpBetweenBrackets :: [Token] -> Maybe (Bexp, [Token])
 parseBexpBetweenBrackets (OpenTok : TrueTok : CloseTok : remainingTokens) =
     Just (TrueExp, remainingTokens)
@@ -66,9 +100,18 @@ parseBexpBetweenBrackets (OpenTok : restTokens) =
         _ -> Nothing
 parseBexpBetweenBrackets _ = Nothing
 
+parseAexpBetweenBrackets :: [Token] -> Maybe (Aexp, [Token])
+parseAexpBetweenBrackets (OpenTok : IntTok n : CloseTok : remainingTokens) =
+    Just (IntExp n, remainingTokens)
+parseAexpBetweenBrackets (OpenTok : restTokens) =
+    case parseSumOrProdOrIntOrPar restTokens of
+        Just (expr, CloseTok : remainingTokens) -> Just (expr, remainingTokens)
+        _ -> Nothing
+parseAexpBetweenBrackets _ = Nothing
+
+
 isValidStm :: Stm -> Bool
 isValidStm stm = True
 
 test :: String ->  [Token]
-test input = processTokens(lexer input)
-
+test input =  (processTokens(lexer input))

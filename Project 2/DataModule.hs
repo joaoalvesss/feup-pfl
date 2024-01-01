@@ -5,6 +5,7 @@ data Aexp
   = IntExp Integer   -- Integer constant
   | VarExp String    -- Variable reference
   | AddExp Aexp Aexp  -- Addition Aexpession
+  | SubExp Aexp Aexp  -- Sub Aexpession
   | MulExp Aexp Aexp    -- Multiplication Aexpession
   | NegateExp Aexp  -- Negate a number
   deriving Show
@@ -12,6 +13,7 @@ data Aexp
 
 data Token
     = PlusTok -- +
+    | MinusTok -- -
     | TimesTok -- *
     | OpenTok -- (
     | CloseTok -- )
@@ -50,10 +52,5 @@ data Stm
   = Assign String Aexp         -- Assignment statement
   | IfThenElse Bexp [Stm] [Stm]  -- Conditional statement
   | While Bexp [Stm]              -- Loop statement
+  | IgnoreStm
   deriving Show
-
-
-
-
-
-

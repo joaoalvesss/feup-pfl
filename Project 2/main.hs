@@ -6,6 +6,8 @@ import Data.Maybe (fromMaybe)
 import Debug.Trace
 import DataModule
 import Parser
+import ParserAexp
+import AuxLexer
 
 -- Part 1
 
@@ -144,6 +146,7 @@ compA :: Aexp -> Code
 compA (IntExp n) = [Push n]
 compA (VarExp var) = [Fetch var]
 compA (AddExp a1 a2) = compA a1 ++ compA a2 ++ [Add]
+compA (SubExp a1 a2) = compA a1 ++ compA a2 ++ [Sub]
 compA (MulExp a1 a2) = compA a1 ++ compA a2 ++ [Mult]
 compA (NegateExp a) = compA a ++ [Neg]
 
@@ -155,7 +158,7 @@ compB (NotExp b) = compB b ++ [Neg]
 compB (AndExp b1 b2) = compB b1 ++ compB b2 ++ [And]
 compB (EqExp a1 a2) = compA a1 ++ compA a2 ++ [Equ]
 compB (LeExp a1 a2) = compA a1 ++ compA a2 ++ [Le]
-compB (EqBoolExp a1 a2) = compA a1 ++ compA a2 ++ [Equ]
+compB (EqBoolExp b1 b2) = compB b1 ++ compB b2 ++ [Equ]
 
 compile :: [Stm] -> Code
 compile = concatMap compileStm
@@ -171,26 +174,26 @@ compileStm (While bexp stm) = [Loop (compB bexp) (compile stm)]
 -- Ver Parser
 
 
-runTest::String -> (String,String)
+runTest :: String -> (String,String)
 runTest input = (stack2Str stack, state2Str state)
      where
-      code = compileStm(parse input)   
+      code = compile(parse input)   
       (_,stack,state) = run(code, createEmptyStack, createEmptyState)
 
-parserTest::String -> Stm
+parserTest :: String -> [Stm]
 parserTest input = parse input
 
 
 --Compilacao dps do parsing
-compileTest::String -> Code
-compileTest input = compileStm(parse input)
+compileTest :: String -> Code
+compileTest input = compile (parse input)
 
 
 --parse :: String -> [Stm]
 --parse = undefined -- TODO
 
-createEmptyStore = undefined -- TODO
-store2Str = undefined -- TODO
+createEmptyStore = createEmptyState -- TODO
+store2Str = createEmptyStack -- TODO
 
 -- To help you test your parser
 --testParser :: String -> (String, String)
