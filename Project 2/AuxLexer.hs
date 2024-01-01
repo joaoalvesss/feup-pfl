@@ -51,7 +51,7 @@ insertEndWhileToken (token : restTokens) stack
         token : insertEndWhileToken restTokens (push token stack)
     | token == SemiColonTok =    
         if isEmpty stack
-            then EndWhileTok : restTokens
+            then token : EndWhileTok : restTokens
             else token : insertEndWhileToken restTokens stack
     | token == CloseTok =    
         token : insertEndWhileToken restTokens (pop stack)
@@ -66,7 +66,7 @@ insertThenToken (token : restTokens) stack
         token : insertThenToken restTokens (pop stack) 
     | token == SemiColonTok =    
         if isEmpty stack
-            then EndThenTok : restTokens
+            then token : EndThenTok : restTokens
             else token : insertThenToken restTokens stack 
     | otherwise = token : insertThenToken restTokens stack        
             
@@ -79,7 +79,7 @@ insertElseToken (token : restTokens) stack
         token : insertElseToken restTokens (pop stack) 
     | token == SemiColonTok =    
         if isEmpty stack
-            then EndElseTok : restTokens
+            then token : EndElseTok : restTokens
             else token : insertElseToken restTokens stack 
     | otherwise = token : insertElseToken restTokens stack    
 
@@ -95,6 +95,6 @@ processTokens (token : restOfTokens)
         token : processTokens restOfTokens
 processTokens [] = []   
 
-test :: String -> [Token]
-test input = processTokens (lexer input)
+--test :: String -> [Token]
+--test input = processTokens (lexer input)
 
