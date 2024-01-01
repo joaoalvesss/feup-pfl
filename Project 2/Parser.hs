@@ -19,8 +19,9 @@ parseStm (WhileTok : restTokens) =
         Just (condition, DoTok : whileBody) ->
             let (stms, remainingTokens) = parseStms untilEndWhileTok whileBody
             in (While condition stms, remainingTokens)
-        _ -> error "Failed to parse while statement"       
-parseStm _ = error "Invalid input for statement"
+        _ -> error "Failed to parse while statement" 
+parseStm [] = error "Unexpected end of input"              
+parseStm _ = error "Invalid input for statement"    
 
 parseStms :: ([Token] -> Bool) -> [Token] -> ([Stm], [Token])
 parseStms _ [] = ([], [])
@@ -34,7 +35,7 @@ parseStms stopCondition tokens
                         let (nextStms, restTokens) = parseStms stopCondition remainingTokens
                         in (stm : nextStms, restTokens)
                     else
-                        error $ "Unexpected tokens after parsing: " ++ show tokens
+                        error $ "2 Unexpected tokens after parsing: " ++ show tokens
 
 remainingTokens :: Stm -> [Token]
 remainingTokens (Assign _ _) = []
@@ -59,6 +60,6 @@ parse input =
     let (stm, remainingTokens) = parseStm (lexer input)
     in if null remainingTokens
         then stm
-        else error $ "Unexpected tokens after parsing: " ++ show remainingTokens
+        else error $ "1 Unexpected tokens after parsing: " ++ show remainingTokens
 
 

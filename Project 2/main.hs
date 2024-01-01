@@ -186,12 +186,12 @@ createEmptyStore = undefined -- TODO
 store2Str = undefined -- TODO
 
 -- To help you test your parser
---testParser :: String -> (String, String)
---testParser programCode = (stack2Str stack, store2Str store)
---  where (_,stack,store) = run(compile (parse programCode), createEmptyStack, createEmptyStore)
+testParser :: String -> (String, String)
+testParser programCode = (stack2Str stack, state2Str store)
+  where (_,stack,store) = run(compile [parse programCode], createEmptyStack, createEmptyState)
 
 -- Examples:
--- testParser "x := 5; x := x - 1;" == ("","x=4")
+-- testParser "x := 5; x := x + 1;" == ("","x=4")
 -- testParser "if (not True and 2 <= 5 = 3 == 4) then x :=1; else y := 2;" == ("","y=2")
 -- testParser "x := 42; if x <= 43 then x := 1; else (x := 33; x := x+1;)" == ("","x=1")
 -- testParser "x := 42; if x <= 43 then x := 1; else x := 33; x := x+1;" == ("","x=2")
