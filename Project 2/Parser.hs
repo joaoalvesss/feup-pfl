@@ -14,14 +14,38 @@ parseStm (VarTok var : AssignmentTok : restTokens) =
         Just (aexp, SemiColonTok : remainingTokens) ->
             (Assign var aexp, remainingTokens)
         _ -> error "Failed to parse assignment statement"
+parseStm (IfTok : restTokens) =
+    case parseBexpBetweenBrackets restTokens of
+        Just (condition, ThenTok : thenBody) ->
+            let (thenStms, elseRestTokens) = parseStmsUntilElseOrEndThen thenBody
+            in case elseRestTokens of
+                (ElseTok : elseBody) ->
+                    let (elseStms, remainingTokens) = parseStmsUntilEndThen elseBody
+                    in (IfThenElse condition thenStms elseStms, remainingTokens)
+                _ -> error "Missing else branch in if statement"
+        _ -> error "Failed to parse if statement"
 parseStm (WhileTok : restTokens) =
     case parseBexpBetweenBrackets restTokens of
         Just (condition, DoTok : whileBody) ->
             let (stms, remainingTokens) = parseStms untilEndWhileTok whileBody
             in (While condition stms, remainingTokens)
-        _ -> error "Failed to parse while statement" 
-parseStm [] = error "Unexpected end of input"              
-parseStm _ = error "Invalid input for statement"    
+        _ -> error "Failed to parse while statement"
+parseStm [] = error "Unexpected end of input"
+parseStm _ = error "Invalid input for statement"
+
+-- Helper functions
+parseStmsUntilElseOrEndThen :: [Token] -> ([Stm], [Token])
+parseStmsUntilElseOrEndThen tokens = parseStms isEndToken tokens
+  where
+    isEndToken (EndElseTok : _) = True
+    isEndToken (EndThenTok : _) = True
+    isEndToken _ = False
+
+parseStmsUntilEndThen :: [Token] -> ([Stm], [Token])
+parseStmsUntilEndThen tokens = parseStms isEndToken tokens
+  where
+    isEndToken (EndThenTok : _) = True
+    isEndToken _ = False
 
 parseStms :: ([Token] -> Bool) -> [Token] -> ([Stm], [Token])
 parseStms _ [] = ([], [])
