@@ -62,7 +62,10 @@ insertEndWhileToken (token : restTokens) stack
     | otherwise = token : insertEndWhileToken restTokens stack
 
 insertThenToken :: [Token] -> Stack Token -> [Token]
-insertThenToken [] _ = [EndThenTok]   
+insertThenToken (ThenTok : OpenTok : restOfTokens) stack = ThenTok : insertThenToken restOfTokens (push OpenTok stack)  
+insertThenToken (ThenTok : restOfTokens) stack = ThenTok : insertThenToken restOfTokens stack 
+insertThenToken (SemiColonTok : CloseTok : ElseTok : restOfTokens) _ = SemiColonTok : EndThenTok : ElseTok : restOfTokens -- ver se stack esta vazia
+insertThenToken [] _ = []   
 insertThenToken (token : restTokens) stack
     | token == OpenTok = 
         token : insertThenToken restTokens (push token stack)
@@ -75,7 +78,12 @@ insertThenToken (token : restTokens) stack
     | otherwise = token : insertThenToken restTokens stack        
             
 insertElseToken :: [Token] -> Stack Token -> [Token]
-insertElseToken [] _ = [EndElseTok]   
+insertElseToken (ElseTok : OpenTok : restOfTokens) stack = ElseTok : insertElseToken restOfTokens (push OpenTok stack)  
+insertElseToken (SemiColonTok : CloseTok : restOfTokens) stack = 
+    if isEmpty stack
+        then SemiColonTok : EndElseTok : restOfTokens 
+        else SemiColonTok : CloseTok : (insertElseToken restOfTokens (pop stack))
+insertElseToken [] _ = []   
 insertElseToken (token : restTokens) stack
     | token == OpenTok = 
         token : insertElseToken restTokens (push token stack)
@@ -89,16 +97,19 @@ insertElseToken (token : restTokens) stack
 
 processTokens :: [Token] -> [Token]
 processTokens (DoTok : OpenTok : restOfTokens) = DoTok : processTokens (insertEndWhileToken (DoTok : OpenTok : restOfTokens) empty)  
+processTokens (IfTok : OpenTok : restOfTokens) = IfTok : OpenTok : processTokens restOfTokens  
+processTokens (CloseTok : ThenTok : restOfTokens) = processTokens (ThenTok : restOfTokens)
+processTokens (ThenTok : OpenTok : restOfTokens) = processTokens (ThenTok : restOfTokens)
+processTokens (ElseTok : OpenTok : restOfTokens) = processTokens (ElseTok : restOfTokens)
 processTokens (token : restOfTokens) 
+    | token == IfTok =
+        token : OpenTok : processTokens restOfTokens 
     | token == DoTok =
         token : processTokens (insertEndWhileToken (token:restOfTokens) empty)
     | token == ThenTok =
-        token : processTokens (insertThenToken restOfTokens empty)
+        CloseTok : token : processTokens (insertThenToken (restOfTokens) empty)
     | token == ElseTok =
-        token : processTokens (insertElseToken restOfTokens empty)
+        token : processTokens (insertElseToken (restOfTokens) empty)
     | otherwise =
         token : processTokens restOfTokens
 processTokens [] = []   
-
-
-

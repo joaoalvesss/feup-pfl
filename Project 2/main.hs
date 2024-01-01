@@ -7,6 +7,7 @@ import Debug.Trace
 import DataModule
 import Parser
 import ParserAexp
+import ParserBexp
 import AuxLexer
 
 -- Part 1
@@ -56,11 +57,11 @@ run (instruction:rest, stack, state) = case instruction of
      Push n -> run (rest, Int n : stack, state)
      Add -> run (rest, binaryOperation (\x y -> Int (toInt x + toInt y)) stack, state)
      Mult -> run (rest, binaryOperation (\x y -> Int (toInt x * toInt y)) stack, state)
-     Sub -> run (rest, binaryOperation (\x y -> Int (toInt x - toInt y)) stack, state)
+     Sub -> run (rest, binaryOperation (\x y -> Int (toInt y - toInt x)) stack, state)
      Tru -> run (rest, Boolean True : stack, state)
      Fals -> run (rest, Boolean False : stack, state)
      Equ -> run (rest, comparisonOperation (\x y -> Boolean (x == y)) stack, state)
-     Le -> run (rest, comparisonOperation (\x y -> Boolean (toInt x <= toInt y)) stack, state)
+     Le -> run (rest, comparisonOperation (\x y -> Boolean (toInt x >= toInt y)) stack, state)
      And -> run (rest, binaryOperation (\x y -> if toBool x /= 0 && toBool y /= 0 then Boolean True else Boolean False) stack, state)
      Neg -> run (rest, unaryOperation (\x -> negateElement x) stack, state)
      Fetch var -> run (rest, stateLookup var stack state : stack, state)

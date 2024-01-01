@@ -22,7 +22,6 @@ parseStm (WhileTok : restTokens) =
                 OpenTok : _ -> parseDoWithOpenParen condition restOfTokens
                 _ -> parseDoWithoutOpenParen condition restOfTokens             
         _ -> error "Failed to parse while statement"
-
 parseStm [] = (IgnoreStm, [])
 parseStm tokens = error "Invalid input for statement" 
 
@@ -60,8 +59,6 @@ parse input =
         if null remainingTokens
             then stms
             else error $ "2 Unexpected tokens after parsing: " ++ show remainingTokens
-
-
 
 parseDoWithoutOpenParen :: Bexp -> [Token] -> (Stm, [Token])
 parseDoWithoutOpenParen condition whileBody =
@@ -108,7 +105,6 @@ parseAexpBetweenBrackets (OpenTok : restTokens) =
         Just (expr, CloseTok : remainingTokens) -> Just (expr, remainingTokens)
         _ -> Nothing
 parseAexpBetweenBrackets _ = Nothing
-
 
 isValidStm :: Stm -> Bool
 isValidStm stm = True

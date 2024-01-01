@@ -33,11 +33,13 @@ parseBoolEqAndNeg tokens =
         result -> result
 
 parseNegAndLessAndEq :: [Token] -> Maybe (Bexp, [Token])
-parseNegAndLessAndEq tokens =
-    case parseLessOrEqOrTrueOrFalseOrParentOrArith tokens of
-        Just (expr1, (NotTok : restTokens1)) ->
+parseNegAndLessAndEq (NotTok : restTokens) =
+    case parseLessOrEqOrTrueOrFalseOrParentOrArith restTokens of
+        Just (expr1, restTokens1) ->
             Just (NotExp expr1, restTokens1)
-        result -> result
+        Nothing -> Nothing
+parseNegAndLessAndEq restTokens = parseLessOrEqOrTrueOrFalseOrParentOrArith restTokens
+
 
 parseLessOrEqOrTrueOrFalseOrParentOrArith :: [Token] -> Maybe (Bexp, [Token])
 parseLessOrEqOrTrueOrFalseOrParentOrArith (OpenTok : restTokens) =
