@@ -1,19 +1,23 @@
--- PFL 2023/24 - Haskell practical assignment quickstart
--- Updated on 15/12/2023
-
 import Data.List (intercalate, sortOn)
 import Data.Maybe (fromMaybe)
 import Debug.Trace
+import Parser
+import ParserAexp
+import ParserBexp
+import AuxLexer
+import DataModule
 
 
 -- Part 1
 
--- Do not modify our definition of Inst and Code
 data Inst =
   Push Integer | Add | Mult | Sub | Tru | Fals | Equ | Le | And | Neg | Fetch String | Store String | Noop |
   Branch Code Code | Loop Code Code
   deriving Show
 type Code = [Inst]
+
+
+-- AEXP / BEXP / STM / TOKEN DEFINED ON "DataModule.hs" file
 
 data Element = 
   Int Integer | Boolean Bool deriving Show
@@ -21,8 +25,10 @@ data Element =
 type Stack = [Element]
 type State = [(String, Element)]
 
+
 createEmptyStack :: Stack
 createEmptyStack = []
+
 
 createEmptyState :: State
 createEmptyState = []
@@ -33,6 +39,7 @@ instance Eq Element where
   (Boolean x) == (Boolean y) = x == y
   _ == _ = False
 
+
 stack2Str :: Stack -> String
 stack2Str stack = intercalate "," (map showElement stack)
   where
@@ -40,12 +47,14 @@ stack2Str stack = intercalate "," (map showElement stack)
     showElement (Boolean True) = "True"
     showElement (Boolean False) = "False"
 
+
 state2Str :: State -> String
 state2Str state = intercalate "," [var ++ "=" ++ showElement val | (var, val) <- sortOn fst state]
   where
     showElement (Int n) = show n
     showElement (Boolean True) = "True"
     showElement (Boolean False) = "False"
+
 
 run :: (Code, Stack, State) -> (Code, Stack, State)
 run ([], stack, state) = ([], stack, state)
@@ -63,7 +72,7 @@ run (instruction:rest, stack, state) = case instruction of
      Fetch var -> run (rest, stateLookup var stack state : stack, state)
      Store var -> run (rest, stackTail stack, stateUpdate var (stackHead stack) state)
      Noop -> run (rest, stack, state)
-     Branch c1 c2 -> run (if toInt (stackHead stack) /= 0 then c1 else c2, stackTail stack, state)
+     Branch c1 c2 -> run (if toInt (stackHead stack) /= 0 then c1 else c2 ++ rest, stackTail stack, state)
      Loop c1 c2 -> run ((c1 ++ [Branch (c2 ++ [Loop c1 c2]) [Noop]]) ++ rest, stack, state)
      where
      toInt (Int n) = n
@@ -71,17 +80,11 @@ run (instruction:rest, stack, state) = case instruction of
      toInt (Boolean False) = 0
      toBool (Boolean True) = 1
      toBool (Boolean False) = 0
-     toBool (Int n) = error "Run-time error 1"
+     toBool (Int n) = error "Run-time error"
 
 
--- Helper function to handle comparisonOperation
 comparisonOperation :: (Element -> Element -> Element) -> Stack -> Stack
-comparisonOperation op (x:y:xs)
-  | isInt x && isInt y = op x y : xs
-  | otherwise = error "Run-time error 2"
-  where
-    isInt (Int _) = True
-    isInt _ = False
+comparisonOperation op (x:y:xs) = op x y : xs
 comparisonOperation _ stack = stack
 
 
@@ -89,100 +92,83 @@ binaryOperation :: (Element -> Element -> Element) -> Stack -> Stack
 binaryOperation op (x:y:xs) = op x y : xs
 binaryOperation _ stack = stack
 
+
 unaryOperation :: (Element -> Element) -> Stack -> Stack
 unaryOperation op (x:xs) = op x : xs
 unaryOperation _ stack = stack
+
 
 negateElement :: Element -> Element
 negateElement (Int n) = Int (negate n)
 negateElement (Boolean b) = Boolean (not b)
 
+
 stackHead :: Stack -> Element
 stackHead (x:_) = x
-stackHead _ = error "Empty stack"
+stackHead _ = error "Run-time error"
+
 
 stackTail :: Stack -> Stack
 stackTail (_:xs) = xs
-stackTail _ = error "Empty stack"
+stackTail _ = error "Run-time error"
+
 
 stateLookup :: String -> Stack -> State -> Element
 stateLookup var stack state =
   fromMaybe (error "Run-time error") (lookup var state)
 
+
 stateUpdate :: String -> Element -> State -> State
 stateUpdate var val state =
   (var, val) : filter (\(v, _) -> v /= var) state
 
--- To help you test your assembler
+
 testAssembler :: Code -> (String, String)
 testAssembler code = (stack2Str stack, state2Str state)
      where (_,stack,state) = run(code, createEmptyStack, createEmptyState)
 
 -- Examples:
--- testAssembler [Push 10,Push 4,Push 3,Sub,Mult] == ("-10","")
--- testAssembler [Fals,Push 3,Tru,Store "var",Store "a", Store "someVar"] == ("","a=3,someVar=False,var=True")
--- testAssembler [Fals,Store "var",Fetch "var"] == ("False","var=False")
--- testAssembler [Push (-20),Tru,Fals] == ("False,True,-20","")
--- testAssembler [Push (-20),Tru,Tru,Neg] == ("False,True,-20","")
--- testAssembler [Push (-20),Tru,Tru,Neg,Equ] == ("False,-20","")
--- testAssembler [Push (-20),Push (-21), Le] == ("True","")
--- testAssembler [Push 5,Store "x",Push 1,Fetch "x",Sub,Store "x"] == ("","x=4")
--- testAssembler [Push 10,Store "i",Push 1,Store "fact",Loop [Push 1,Fetch "i",Equ,Neg] [Fetch "i",Fetch "fact",Mult,Store "fact",Push 1,Fetch "i",Sub,Store "i"]] == ("","fact=3628800,i=1")
+-- testAssembler [Push 10,Push 4,Push 3,Sub,Mult] == ("-10","") TRUE
+-- testAssembler [Fals,Push 3,Tru,Store "var",Store "a", Store "someVar"] == ("","a=3,someVar=False,var=True") TRUE
+-- testAssembler [Fals,Store "var",Fetch "var"] == ("False","var=False") TRUE
+-- testAssembler [Push (-20),Tru,Fals] == ("False,True,-20","") TRUE
+-- testAssembler [Push (-20),Tru,Tru,Neg] == ("False,True,-20","") TRUE
+-- testAssembler [Push (-20),Tru,Tru,Neg,Equ] == ("False,-20","") TRUE
+-- testAssembler [Push (-20),Push (-21), Le] == ("True","") TRUE
+-- testAssembler [Push 5,Store "x",Push 1,Fetch "x",Sub,Store "x"] == ("","x=4") TRUE
+-- testAssembler [Push 10,Store "i",Push 1,Store "fact",Loop [Push 1,Fetch "i",Equ,Neg] [Fetch "i",Fetch "fact",Mult,Store "fact",Push 1,Fetch "i",Sub,Store "i"]] == ("","fact=3628800,i=1") TRUE
 -- If you test:
--- testAssembler [Push 1,Push 2,And]
+-- testAssembler [Push 1,Push 2,And] CORRECT
 -- You should get an exception with the string: "Run-time error"
 -- If you test:
--- testAssembler [Tru,Tru,Store "y", Fetch "x",Tru]
+-- testAssembler [Tru,Tru,Store "y", Fetch "x",Tru] CORRECT
 -- You should get an exception with the string: "Run-time error"
+
 
 -- Part 2
 
--- TODO: Define the types Aexp, Bexp, Stm and Program
-
-data Aexp =
-  IntExp Integer |  -- Integer constant
-  VarExp String |   -- Variable reference
-  AddExp Aexp Aexp | -- Addition expression
-  MulExp Aexp Aexp |   -- Multiplication expression
-  NegateExp Aexp  -- Negate a number
-  deriving Show
-
-
-data Bexp =
-  TrueExp |         -- True constant
-  FalseExp |        -- False constant
-  NotExp Bexp |     -- Logical NOT
-  AndExp Bexp Bexp | -- Logical AND
-  EqExp Aexp Aexp |  -- Equality comparison
-  LeExp Aexp Aexp    -- Less than or equal to comparison
-  deriving Show
-
-data Stm =
-  Assign String Aexp |        -- Assignment statement
-  IfThenElse Bexp [Stm] [Stm] | -- Conditional statement
-  While Bexp [Stm]              -- Loop statement
-  deriving Show
-
-
--- Auxiliary function to compile arithmetic expressions
 compA :: Aexp -> Code
 compA (IntExp n) = [Push n]
 compA (VarExp var) = [Fetch var]
 compA (AddExp a1 a2) = compA a1 ++ compA a2 ++ [Add]
+compA (SubExp a1 a2) = compA a2 ++ compA a1 ++ [Sub]
 compA (MulExp a1 a2) = compA a1 ++ compA a2 ++ [Mult]
 compA (NegateExp a) = compA a ++ [Neg]
 
--- Auxiliary function to compile boolean expressions
+
 compB :: Bexp -> Code
 compB TrueExp = [Tru]
 compB FalseExp = [Fals]
 compB (NotExp b) = compB b ++ [Neg]
 compB (AndExp b1 b2) = compB b1 ++ compB b2 ++ [And]
 compB (EqExp a1 a2) = compA a1 ++ compA a2 ++ [Equ]
-compB (LeExp a1 a2) = compA a1 ++ compA a2 ++ [Le]
+compB (LeExp a1 a2) = compA a2 ++ compA a1 ++ [Le]
+compB (EqBoolExp b1 b2) = compB b1 ++ compB b2 ++ [Equ]
+
 
 compile :: [Stm] -> Code
 compile = concatMap compileStm
+
 
 compileStm :: Stm -> Code
 compileStm (Assign var aexp) = compA aexp ++ [Store var]
@@ -190,74 +176,40 @@ compileStm (IfThenElse bexp stm1 stm2) =
   compB bexp ++ [Branch (compile stm1) (compile stm2)]
 compileStm (While bexp stm) = [Loop (compB bexp) (compile stm)]
 
--- parse :: String -> Program
-parse = undefined -- TODO
+
+parse :: String -> [Stm]
+parse input =
+  let (stms, remainingTokens) = parseStmsUntilEndWhile (processTokens (lexer input))
+  in
+    if null remainingTokens
+      then stms
+      else error "Run-time error"
 
 
--- To help you test your parser
 testParser :: String -> (String, String)
 testParser programCode = (stack2Str stack, state2Str state)
   where (_,stack,state) = run(compile (parse programCode), createEmptyStack, createEmptyState)
 
+
 -- Examples:
--- testParser "x := 5; x := x - 1;" == ("","x=4")
--- testParser "if (not True and 2 <= 5 = 3 == 4) then x :=1; else y := 2;" == ("","y=2")
--- testParser "x := 42; if x <= 43 then x := 1; else (x := 33; x := x+1;)" == ("","x=1")
--- testParser "x := 42; if x <= 43 then x := 1; else x := 33; x := x+1;" == ("","x=2")
--- testParser "x := 42; if x <= 43 then x := 1; else x := 33; x := x+1; z := x+x;" == ("","x=2,z=4")
--- testParser "x := 2; y := (x - 3)*(4 + 2*3); z := x +x*(2);" == ("","x=2,y=-10,z=6")
--- testParser "i := 10; fact := 1; while (not(i == 1)) do (fact := fact * i; i := i - 1;);" == ("","fact=3628800,i=1")
+-- testParser "x := 5; x := x - 1;" == ("","x=4") TRUE
+-- testParser "if (not True and 2 <= 5 = 3 == 4) then x :=1; else y := 2;" == ("","y=2") TRUE
+-- testParser "x := 42; if x <= 43 then x := 1; else (x := 33; x := x+1;)" == ("","x=1") FAIL
+-- testParser "x := 42; if x <= 43 then x := 1; else x := 33; x := x+1;" == ("","x=2") FALSE
+-- testParser "x := 42; if x <= 43 then x := 1; else x := 33; x := x+1; z := x+x;" == ("","x=2,z=4") FALSE
+-- testParser "x := 2; y := (x - 3)*(4 + 2*3); z := x +x*(2);" == ("","x=2,y=-10,z=6") TRUE
+-- testParser "i := 10; fact := 1; while (not(i == 1)) do (fact := fact * i; i := i - 1;);" == ("","fact=3628800,i=1") TRUE
+
+-- Some Auxiliar functions to help debug
+runTest :: String -> (String,String)
+runTest input = (stack2Str stack, state2Str state)
+     where
+      code = compile(parse input)   
+      (_,stack,state) = run(code, createEmptyStack, createEmptyState)
+
+parserTest :: String -> [Stm]
+parserTest input = parse input
 
 
-main :: IO ()
-main = do
-  -- Test for Aexp expressions
-  putStrLn "Test for Aexp expressions:"
-  putStrLn "IntExp 42:"
-  print $ compA (IntExp 42)
-
-  putStrLn "\nVarExp \"x\":"
-  print $ compA (VarExp "x")
-
-  putStrLn "\nAddExp (IntExp 3) (VarExp \"y\"):"
-  print $ compA (AddExp (IntExp 3) (VarExp "y"))
-
-  putStrLn "\nMulExp (VarExp \"a\") (VarExp \"b\"):"
-  print $ compA (MulExp (VarExp "a") (VarExp "b"))
-
-  putStrLn "\nNegateExp (IntExp 7):"
-  print $ compA (NegateExp (IntExp 7))
-
-  -- Test for Bexp expressions
-  putStrLn "\nTest for Bexp expressions:"
-  putStrLn "TrueExp:"
-  print $ compB TrueExp
-
-  putStrLn "\nFalseExp:"
-  print $ compB FalseExp
-
-  putStrLn "\nNotExp (TrueExp):"
-  print $ compB (NotExp TrueExp)
-
-  putStrLn "\nAndExp (TrueExp) (FalseExp):"
-  print $ compB (AndExp TrueExp FalseExp)
-
-  putStrLn "\nEqExp (VarExp \"x\") (IntExp 5):"
-  print $ compB (EqExp (VarExp "x") (IntExp 5))
-
-  putStrLn "\nLeExp (AddExp (IntExp 2) (VarExp \"y\")) (MulExp (IntExp 3) (IntExp 4)):"
-  print $ compB (LeExp (AddExp (IntExp 2) (VarExp "y")) (MulExp (IntExp 3) (IntExp 4)))
-
-  -- Test for Stm expressions
-  putStrLn "\nTest for Stm expressions:"
-  putStrLn "Assign \"x\" (IntExp 42):"
-  print $ compileStm (Assign "x" (IntExp 42))
-
-  putStrLn "\nIfThenElse (TrueExp) [Assign \"y\" (IntExp 10)] [Assign \"y\" (IntExp 20)]:"
-  print $ compileStm (IfThenElse TrueExp [Assign "y" (IntExp 10)] [Assign "y" (IntExp 20)])
-
-  putStrLn "\nWhile (LeExp (VarExp \"x\") (IntExp 3)) [Assign \"y\" (VarExp \"x\"), Assign \"x\" (AddExp (VarExp \"x\") (IntExp 1))]:"
-  print $ compileStm (While (LeExp (VarExp "x") (IntExp 3)) [Assign "y" (VarExp "x"), Assign "x" (AddExp (VarExp "x") (IntExp 1))])
-
-
-
+compileTest :: String -> Code
+compileTest input = compile (parse input)
