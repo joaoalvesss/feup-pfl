@@ -20,36 +20,36 @@ data Bexp
   deriving Show
 
 data Stm 
-  = Assign String Aexp         -- Assignment statement
-  | IfThenElse Bexp [Stm] [Stm]  -- Conditional statement
+  = Assign String Aexp            -- Assignment statement
+  | IfThenElse Bexp [Stm] [Stm]   -- Conditional statement
   | While Bexp [Stm]              -- Loop statement
   | IgnoreStm
   deriving Show
 
 data Token
-    = PlusTok -- +
-    | MinusTok -- -
-    | TimesTok -- *
-    | OpenTok -- (
-    | CloseTok -- )
-    | IntTok Integer -- num
-    | VarTok String -- variable name
-    | AssignmentTok -- :=
-    | SemiColonTok -- ;
-    | IfTok       -- if
-    | ThenTok      -- then
-    | ElseTok     -- else
-    | WhileTok     -- while
-    | DoTok          -- do
-    | EqualityTok   -- ==
-    | InequalityTok -- <=
-    | CompareTok    -- =  
-    | NotTok        -- not
-    | AndTok        -- and
-    | TrueTok   -- True
-    | FalseTok  -- False
-    | EndWhileTok -- End While Operation
-    | EndElseTok -- End Else Operation
-    | EndThenTok -- End Then Operation
+    = PlusTok             -- +
+    | MinusTok            -- -
+    | TimesTok            -- *
+    | OpenTok             -- (
+    | CloseTok            -- )
+    | IntTok Integer      -- num
+    | VarTok String       -- variable name
+    | AssignmentTok       -- :=
+    | SemiColonTok        -- ;
+    | IfTok               -- if
+    | ThenTok             -- then
+    | ElseTok             -- else
+    | WhileTok            -- while
+    | DoTok               -- do
+    | EqualityTok         -- ==
+    | InequalityTok       -- <=
+    | CompareTok          -- =  
+    | NotTok              -- not
+    | AndTok              -- and
+    | TrueTok             -- True
+    | FalseTok            -- False
+    | EndWhileTok         -- End While Operation
+    | EndElseTok          -- End Else Operation
+    | EndThenTok          -- End Then Operation
     deriving (Show, Eq)
 

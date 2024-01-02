@@ -4,11 +4,27 @@ import DataModule
 import Data.Char (isDigit, isSpace, digitToInt)
 
 
-parseVar :: [Token] -> Maybe (Aexp, [Token])
+-- | Function: parseVar
+--
+-- Parses a variable token into a variable expression ('VarExp').
+--
+-- * Input: The list of tokens to be parsed.
+--
+-- * Output: A 'Maybe' pair of the parsed variable expression and the remaining tokens.
+parseVar :: [Token]          -- ^ The list of tokens to be parsed.
+         -> Maybe (Aexp, [Token]) -- ^ A 'Maybe' pair of the parsed variable expression and the remaining tokens.
 parseVar (VarTok var : restTokens) = Just (VarExp var, restTokens)
 parseVar _ = Nothing
 
-parseIntOrParseVarexp :: [Token] -> Maybe (Aexp, [Token])
+-- | Function: parseIntOrParseVarexp
+--
+-- Parses an integer token or a variable token into an arithmetic expression ('Aexp').
+--
+-- * Input: The list of tokens to be parsed.
+--
+-- * Output: A 'Maybe' pair of the parsed arithmetic expression and the remaining tokens.
+parseIntOrParseVarexp :: [Token]          -- ^ The list of tokens to be parsed.
+                       -> Maybe (Aexp, [Token]) -- ^ A 'Maybe' pair of the parsed arithmetic expression and the remaining tokens.
 parseIntOrParseVarexp (IntTok n : restTokens) =
     Just (IntExp n, restTokens)
 parseIntOrParseVarexp (VarTok var : restTokens) =
@@ -21,7 +37,15 @@ parseIntOrParseVarexp (OpenTok : restTokens1) =
         Nothing -> Nothing
 parseIntOrParseVarexp _ = Nothing
 
-parseProdOrInt :: [Token] -> Maybe (Aexp, [Token])
+-- | Function: parseProdOrInt
+--
+-- Parses multiplication operations in the expression.
+--
+-- * Input: The list of tokens to be parsed.
+--
+-- * Output: A 'Maybe' pair of the parsed multiplication expression and the remaining tokens.
+parseProdOrInt :: [Token]          -- ^ The list of tokens to be parsed.
+               -> Maybe (Aexp, [Token]) -- ^ A 'Maybe' pair of the parsed multiplication expression and the remaining tokens.
 parseProdOrInt tokens =
     case parseIntOrParseVarexp tokens of
         Just (aexp1, (TimesTok : restTokens1)) ->
@@ -31,7 +55,15 @@ parseProdOrInt tokens =
                 Nothing -> Nothing
         result -> result
 
-parseSumOrProdOrInt :: [Token] -> Maybe (Aexp, [Token])
+-- | Function: parseSumOrProdOrInt
+--
+-- Parses addition operations in the expression.
+--
+-- * Input: The list of tokens to be parsed.
+--
+-- * Output: A 'Maybe' pair of the parsed addition expression and the remaining tokens.
+parseSumOrProdOrInt :: [Token]          -- ^ The list of tokens to be parsed.
+                    -> Maybe (Aexp, [Token]) -- ^ A 'Maybe' pair of the parsed addition expression and the remaining tokens.
 parseSumOrProdOrInt tokens =
     case parseProdOrInt tokens of
         Just (aexp1, (PlusTok : restTokens1)) ->
@@ -41,7 +73,15 @@ parseSumOrProdOrInt tokens =
                 Nothing -> Nothing
         result -> result
 
-parseSubOrProdOrInt :: [Token] -> Maybe (Aexp, [Token])
+-- | Function: parseSubOrProdOrInt
+--
+-- Parses subtraction operations in the expression.
+--
+-- * Input: The list of tokens to be parsed.
+--
+-- * Output: A 'Maybe' pair of the parsed subtraction expression and the remaining tokens.
+parseSubOrProdOrInt :: [Token]          -- ^ The list of tokens to be parsed.
+                   -> Maybe (Aexp, [Token]) -- ^ A 'Maybe' pair of the parsed subtraction expression and the remaining tokens.
 parseSubOrProdOrInt tokens =
     case parseProdOrInt tokens of
         Just (aexp1, (MinusTok : restTokens1)) ->
@@ -51,7 +91,15 @@ parseSubOrProdOrInt tokens =
                 Nothing -> Nothing
         result -> result
 
-parseProdOrIntOrPar :: [Token] -> Maybe (Aexp, [Token])
+-- | Function: parseProdOrIntOrPar
+--
+-- Parses multiplication operations or individual integers in the expression, including parentheses.
+--
+-- * Input: The list of tokens to be parsed.
+--
+-- * Output: A 'Maybe' pair of the parsed multiplication expression and the remaining tokens.
+parseProdOrIntOrPar :: [Token]          -- ^ The list of tokens to be parsed.
+                   -> Maybe (Aexp, [Token]) -- ^ A 'Maybe' pair of the parsed multiplication expression and the remaining tokens.
 parseProdOrIntOrPar tokens =
     case parseIntOrParseVarexp tokens of
         Just (aexp1, (TimesTok : restTokens1)) ->
@@ -61,7 +109,15 @@ parseProdOrIntOrPar tokens =
                 Nothing -> Nothing
         result -> result
 
-parseSumOrProdOrIntOrPar :: [Token] -> Maybe (Aexp, [Token])
+-- | Function: parseSumOrProdOrIntOrPar
+--
+-- Parses addition or multiplication operations or individual integers in the expression, including parentheses.
+--
+-- * Input: The list of tokens to be parsed.
+--
+-- * Output: A 'Maybe' pair of the parsed addition/multiplication expression and the remaining tokens.
+parseSumOrProdOrIntOrPar :: [Token]          -- ^ The list of tokens to be parsed.
+                        -> Maybe (Aexp, [Token]) -- ^ A 'Maybe' pair of the parsed addition/multiplication expression and the remaining tokens.
 parseSumOrProdOrIntOrPar tokens =
     case parseSubOrProdOrInt tokens of
         Just (aexp1, (PlusTok : restTokens1)) ->
@@ -71,7 +127,15 @@ parseSumOrProdOrIntOrPar tokens =
                 Nothing -> Nothing
         result -> result
 
-parseAexp :: [Token] -> Aexp
+-- | Function: parseAexp
+--
+-- Parses the entire arithmetic expression from a list of tokens.
+--
+-- * Input: The list of tokens to be parsed.
+--
+-- * Output: The parsed arithmetic expression.
+parseAexp :: [Token]  -- ^ The list of tokens to be parsed.
+          -> Aexp     -- ^ The parsed arithmetic expression.
 parseAexp tokens =
     case parseSumOrProdOrIntOrPar tokens of
         Just (aexp, []) -> aexp

@@ -4,7 +4,9 @@ import Data.Char (isDigit, isSpace, digitToInt, isAlpha, isAlphaNum)
 import DataModule
 import Stack
 
-
+-- | 'lexer' function tokenizes a given string into a list of tokens.
+-- It recognizes operators, parentheses, assignment symbols, and keywords.
+-- Throws 'Run-time error' for invalid input.
 lexer :: String -> [Token]
 lexer [] = []
 lexer ('+' : restStr) = PlusTok : lexer restStr
@@ -45,6 +47,8 @@ lexer str@(chr : restStr)
         isAlphaNumOrUnderscore c = isAlphaNum c || c == '_'
 lexer (_ : restString) = error "Run-time error"
 
+-- | 'insertEndWhileToken' function inserts EndWhileTok tokens in a given list of tokens.
+-- It marks the end of while-loops based on DoTok, OpenTok, CloseTok, and SemiColonTok.
 insertEndWhileToken :: [Token] -> Stack Token -> [Token]
 insertEndWhileToken [] _ = []
 insertEndWhileToken (DoTok : OpenTok : restOfTokens) stack = insertEndWhileToken restOfTokens (push OpenTok stack)
@@ -61,10 +65,12 @@ insertEndWhileToken (token : restTokens) stack
         token : insertEndWhileToken restTokens (pop stack)
     | otherwise = token : insertEndWhileToken restTokens stack
 
+-- | 'insertThenToken' function inserts EndThenTok tokens in a given list of tokens.
+-- It marks the end of 'then' blocks based on ThenTok, OpenTok, CloseTok, SemiColonTok, and ElseTok.
 insertThenToken :: [Token] -> Stack Token -> [Token]
 insertThenToken (ThenTok : OpenTok : restOfTokens) stack = ThenTok : insertThenToken restOfTokens (push OpenTok stack)  
 insertThenToken (ThenTok : restOfTokens) stack = ThenTok : insertThenToken restOfTokens stack 
-insertThenToken (SemiColonTok : CloseTok : ElseTok : restOfTokens) _ = SemiColonTok : EndThenTok : ElseTok : restOfTokens -- ver se stack esta vazia
+insertThenToken (SemiColonTok : CloseTok : ElseTok : restOfTokens) _ = SemiColonTok : EndThenTok : ElseTok : restOfTokens
 insertThenToken (SemiColonTok : ElseTok : restOfTokens) _ = SemiColonTok : EndThenTok : ElseTok : restOfTokens 
 insertThenToken (CloseTok : ElseTok : restOfTokens) _ = CloseTok : EndThenTok : ElseTok : restOfTokens 
 insertThenToken [] _ = []   
@@ -74,7 +80,9 @@ insertThenToken (token : restTokens) stack
     | token == CloseTok =    
         token : insertThenToken restTokens (pop stack)  
     | otherwise = token : insertThenToken restTokens stack        
-            
+
+-- | 'insertElseToken' function inserts EndElseTok tokens in a given list of tokens.
+-- It marks the end of 'else' blocks based on OpenTok, ElseTok, SemiColonTok, CloseTok.            
 insertElseToken :: [Token] -> Stack Token -> [Token]
 insertElseToken (OpenTok : ElseTok : restOfTokens) stack = ElseTok : insertElseToken restOfTokens (push OpenTok stack)
 insertElseToken (ElseTok : OpenTok : restOfTokens) stack = ElseTok : insertElseToken restOfTokens (push OpenTok stack)  
@@ -94,6 +102,8 @@ insertElseToken (token : restTokens) stack
             else token : insertElseToken restTokens stack 
     | otherwise = token : insertElseToken restTokens stack    
 
+-- | 'processTokens' function processes a list of tokens, inserting corresponding block markers.
+-- It handles 'if', 'then', 'else', and 'do' blocks based on the given list of tokens.
 processTokens :: [Token] -> [Token]
 processTokens (DoTok : OpenTok : restOfTokens) = DoTok : processTokens (insertEndWhileToken (DoTok : OpenTok : restOfTokens) empty)  
 processTokens (IfTok : OpenTok : restOfTokens) = IfTok : OpenTok : processTokens restOfTokens  
