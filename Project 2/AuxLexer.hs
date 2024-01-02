@@ -43,7 +43,7 @@ lexer str@(chr : restStr)
                 _ -> VarTok varName : lexer restStr'
     where
         isAlphaNumOrUnderscore c = isAlphaNum c || c == '_'
-lexer (_ : restString) = error ("unexpected character: ")
+lexer (_ : restString) = error "Run-time error"
 
 insertEndWhileToken :: [Token] -> Stack Token -> [Token]
 insertEndWhileToken [] _ = []
@@ -65,19 +65,18 @@ insertThenToken :: [Token] -> Stack Token -> [Token]
 insertThenToken (ThenTok : OpenTok : restOfTokens) stack = ThenTok : insertThenToken restOfTokens (push OpenTok stack)  
 insertThenToken (ThenTok : restOfTokens) stack = ThenTok : insertThenToken restOfTokens stack 
 insertThenToken (SemiColonTok : CloseTok : ElseTok : restOfTokens) _ = SemiColonTok : EndThenTok : ElseTok : restOfTokens -- ver se stack esta vazia
+insertThenToken (SemiColonTok : ElseTok : restOfTokens) _ = SemiColonTok : EndThenTok : ElseTok : restOfTokens 
+insertThenToken (CloseTok : ElseTok : restOfTokens) _ = CloseTok : EndThenTok : ElseTok : restOfTokens 
 insertThenToken [] _ = []   
 insertThenToken (token : restTokens) stack
     | token == OpenTok = 
         token : insertThenToken restTokens (push token stack)
     | token == CloseTok =    
-        token : insertThenToken restTokens (pop stack) 
-    | token == SemiColonTok =    
-        if isEmpty stack
-            then token : EndThenTok : restTokens
-            else token : insertThenToken restTokens stack 
+        token : insertThenToken restTokens (pop stack)  
     | otherwise = token : insertThenToken restTokens stack        
             
 insertElseToken :: [Token] -> Stack Token -> [Token]
+insertElseToken (OpenTok : ElseTok : restOfTokens) stack = ElseTok : insertElseToken restOfTokens (push OpenTok stack)
 insertElseToken (ElseTok : OpenTok : restOfTokens) stack = ElseTok : insertElseToken restOfTokens (push OpenTok stack)  
 insertElseToken (SemiColonTok : CloseTok : restOfTokens) stack = 
     if isEmpty stack
@@ -99,8 +98,8 @@ processTokens :: [Token] -> [Token]
 processTokens (DoTok : OpenTok : restOfTokens) = DoTok : processTokens (insertEndWhileToken (DoTok : OpenTok : restOfTokens) empty)  
 processTokens (IfTok : OpenTok : restOfTokens) = IfTok : OpenTok : processTokens restOfTokens  
 processTokens (CloseTok : ThenTok : restOfTokens) = processTokens (ThenTok : restOfTokens)
-processTokens (ThenTok : OpenTok : restOfTokens) = processTokens (ThenTok : restOfTokens)
-processTokens (ElseTok : OpenTok : restOfTokens) = processTokens (ElseTok : restOfTokens)
+processTokens (ThenTok : OpenTok : restOfTokens) = processTokens (insertThenToken (ThenTok : OpenTok :  restOfTokens) empty)
+processTokens (ElseTok : OpenTok : restOfTokens) = processTokens (insertElseToken ( ElseTok : OpenTok :  restOfTokens) empty)
 processTokens (token : restOfTokens) 
     | token == IfTok =
         token : OpenTok : processTokens restOfTokens 
@@ -113,3 +112,5 @@ processTokens (token : restOfTokens)
     | otherwise =
         token : processTokens restOfTokens
 processTokens [] = []   
+
+

@@ -4,12 +4,11 @@
 import Data.List (intercalate, sortOn)
 import Data.Maybe (fromMaybe)
 import Debug.Trace
-import DataModule
 import Parser
 import ParserAexp
 import ParserBexp
 import AuxLexer
-
+import DataModule
 -- Part 1
 
 -- Do not modify our definition of Inst and Code
@@ -19,11 +18,17 @@ data Inst =
   deriving Show
 type Code = [Inst]
 
+
+-- AEXP / BEXP / STM / TOKEN DEFINED ON "DataModule.hs" file
+
 data Element = 
   Int Integer | Boolean Bool deriving Show
 
 type Stack = [Element]
 type State = [(String, Element)]
+
+
+
 
 createEmptyStack :: Stack
 createEmptyStack = []
@@ -57,17 +62,17 @@ run (instruction:rest, stack, state) = case instruction of
      Push n -> run (rest, Int n : stack, state)
      Add -> run (rest, binaryOperation (\x y -> Int (toInt x + toInt y)) stack, state)
      Mult -> run (rest, binaryOperation (\x y -> Int (toInt x * toInt y)) stack, state)
-     Sub -> run (rest, binaryOperation (\x y -> Int (toInt y - toInt x)) stack, state)
+     Sub -> run (rest, binaryOperation (\x y -> Int (toInt x - toInt y)) stack, state)
      Tru -> run (rest, Boolean True : stack, state)
      Fals -> run (rest, Boolean False : stack, state)
      Equ -> run (rest, comparisonOperation (\x y -> Boolean (x == y)) stack, state)
-     Le -> run (rest, comparisonOperation (\x y -> Boolean (toInt x >= toInt y)) stack, state)
+     Le -> run (rest, comparisonOperation (\x y -> Boolean (toInt x <= toInt y)) stack, state)
      And -> run (rest, binaryOperation (\x y -> if toBool x /= 0 && toBool y /= 0 then Boolean True else Boolean False) stack, state)
      Neg -> run (rest, unaryOperation (\x -> negateElement x) stack, state)
      Fetch var -> run (rest, stateLookup var stack state : stack, state)
      Store var -> run (rest, stackTail stack, stateUpdate var (stackHead stack) state)
      Noop -> run (rest, stack, state)
-     Branch c1 c2 -> run (if toInt (stackHead stack) /= 0 then c1 else c2, stackTail stack, state)
+     Branch c1 c2 -> run (if toInt (stackHead stack) /= 0 then c1 else c2 ++ rest, stackTail stack, state)
      Loop c1 c2 -> run ((c1 ++ [Branch (c2 ++ [Loop c1 c2]) [Noop]]) ++ rest, stack, state)
      where
      toInt (Int n) = n
@@ -99,15 +104,15 @@ negateElement (Boolean b) = Boolean (not b)
 
 stackHead :: Stack -> Element
 stackHead (x:_) = x
-stackHead _ = error "Empty stack"
+stackHead _ = error "Run-time error"
 
 stackTail :: Stack -> Stack
 stackTail (_:xs) = xs
-stackTail _ = error "Empty stack"
+stackTail _ = error "Run-time error"
 
 stateLookup :: String -> Stack -> State -> Element
 stateLookup var stack state =
-  fromMaybe (error "Variable not found") (lookup var state)
+  fromMaybe (error "Run-time error") (lookup var state)
 
 stateUpdate :: String -> Element -> State -> State
 stateUpdate var val state =
@@ -147,7 +152,7 @@ compA :: Aexp -> Code
 compA (IntExp n) = [Push n]
 compA (VarExp var) = [Fetch var]
 compA (AddExp a1 a2) = compA a1 ++ compA a2 ++ [Add]
-compA (SubExp a1 a2) = compA a1 ++ compA a2 ++ [Sub]
+compA (SubExp a1 a2) = compA a2 ++ compA a1 ++ [Sub]
 compA (MulExp a1 a2) = compA a1 ++ compA a2 ++ [Mult]
 compA (NegateExp a) = compA a ++ [Neg]
 
@@ -158,7 +163,7 @@ compB FalseExp = [Fals]
 compB (NotExp b) = compB b ++ [Neg]
 compB (AndExp b1 b2) = compB b1 ++ compB b2 ++ [And]
 compB (EqExp a1 a2) = compA a1 ++ compA a2 ++ [Equ]
-compB (LeExp a1 a2) = compA a1 ++ compA a2 ++ [Le]
+compB (LeExp a1 a2) = compA a2 ++ compA a1 ++ [Le]
 compB (EqBoolExp b1 b2) = compB b1 ++ compB b2 ++ [Equ]
 
 compile :: [Stm] -> Code
@@ -169,10 +174,6 @@ compileStm (Assign var aexp) = compA aexp ++ [Store var]
 compileStm (IfThenElse bexp stm1 stm2) =
   compB bexp ++ [Branch (compile stm1) (compile stm2)]
 compileStm (While bexp stm) = [Loop (compB bexp) (compile stm)]
-
-
-
--- Ver Parser
 
 
 runTest :: String -> (String,String)
@@ -189,23 +190,25 @@ parserTest input = parse input
 compileTest :: String -> Code
 compileTest input = compile (parse input)
 
+parse :: String -> [Stm]
+parse input =
+  let (stms, remainingTokens) = parseStmsUntilEndWhile (processTokens (lexer input))
+  in
+    if null remainingTokens
+      then stms
+      else error "Run-time error"
 
---parse :: String -> [Stm]
---parse = undefined -- TODO
-
-createEmptyStore = createEmptyState -- TODO
-store2Str = createEmptyStack -- TODO
 
 -- To help you test your parser
---testParser :: String -> (String, String)
---testParser programCode = (stack2Str stack, store2Str store)
---  where (_,stack,store) = run(compile (parse programCode), createEmptyStack, createEmptyStore)
+testParser :: String -> (String, String)
+testParser programCode = (stack2Str stack, state2Str state)
+  where (_,stack,state) = run(compile (parse programCode), createEmptyStack, createEmptyState)
 
 -- Examples:
 -- testParser "x := 5; x := x - 1;" == ("","x=4")
 -- testParser "if (not True and 2 <= 5 = 3 == 4) then x :=1; else y := 2;" == ("","y=2")
--- testParser "x := 42; if x <= 43 then x := 1; else (x := 33; x := x+1;)" == ("","x=1")
--- testParser "x := 42; if x <= 43 then x := 1; else x := 33; x := x+1;" == ("","x=2")
--- testParser "x := 42; if x <= 43 then x := 1; else x := 33; x := x+1; z := x+x;" == ("","x=2,z=4")
+-- FAIL testParser "x := 42; if x <= 43 then x := 1; else (x := 33; x := x+1;)" == ("","x=1")
+-- FAIL testParser "x := 42; if x <= 43 then x := 1; else x := 33; x := x+1;" == ("","x=2")
+-- FAIL testParser "x := 42; if x <= 43 then x := 1; else x := 33; x := x+1; z := x+x;" == ("","x=2,z=4")
 -- testParser "x := 2; y := (x - 3)*(4 + 2*3); z := x +x*(2);" == ("","x=2,y=-10,z=6")
 -- testParser "i := 10; fact := 1; while (not(i == 1)) do (fact := fact * i; i := i - 1;);" == ("","fact=3628800,i=1")

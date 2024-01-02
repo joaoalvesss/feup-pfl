@@ -10,7 +10,7 @@ parseBexp :: [Token] -> Bexp
 parseBexp tokens =
     case parseAndBoolEq tokens of
         Just (bexp, []) -> bexp
-        _ -> error "Parse Bexp error"
+        _ -> error "Run-time error"
 
 parseAndBoolEq :: [Token] -> Maybe (Bexp, [Token])
 parseAndBoolEq tokens =

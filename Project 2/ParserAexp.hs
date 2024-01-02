@@ -75,7 +75,7 @@ parseAexp :: [Token] -> Aexp
 parseAexp tokens =
     case parseSumOrProdOrIntOrPar tokens of
         Just (aexp, []) -> aexp
-        _ -> error "Parse Aexp error"
+        _ -> error "Run-time error"
 
 
 

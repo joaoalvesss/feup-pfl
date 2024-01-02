@@ -6,11 +6,11 @@ push x (Stk xs) = Stk (x:xs)
 
 pop :: Stack a -> Stack a
 pop (Stk (_:xs)) = Stk xs
-pop _ = error "Stack.pop: empty stack"
+pop _ = error "Run-time error"
 
 top :: Stack a -> a
 top (Stk (x:_)) = x
-top _ = error "Stack.top: empty stack"
+top _ = error "Run-time error"
 
 empty :: Stack a
 empty = Stk []
